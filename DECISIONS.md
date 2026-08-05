@@ -174,6 +174,143 @@ not legible enough to demo, that is a finding about the engine, not a gap to fil
 
 **Date.** 2026-08-05 (M0), from DESIGN.md §14.7, §4.
 
+## D11 — Reconstruct actual times from delay minutes, not from the hhmm fields
+
+**Decision.** `actual = scheduled + delay`, computed in UTC. The reported DepTime and ArrTime
+strings are parsed only to establish whether a leg departed or arrived, and to count the 2400
+convention for the quality report.
+
+**Rejected.** Parsing DepTime/ArrTime as local hhmm and reconstructing the calendar date.
+
+**Why.** BTS reports actual times as local hhmm with no date, so recovering a timestamp means
+inferring whether the leg crossed midnight -- and the file uses 2400 for midnight, which appears
+249 times in January 2026. Delay minutes are signed offsets from times that are already anchored
+to a date, so the arithmetic is exact and the ambiguity never arises. The measured consequence:
+the 2400 convention appears in no scheduled field and therefore never reaches the model at all.
+The check that this is not merely convenient is a test asserting the reconstruction reproduces
+the reported delay on every leg.
+
+**Date.** 2026-08-05 (M2), from DESIGN.md §9.
+
+## D12 — Compute scheduled arrival from CRSElapsedTime, making CRSArrTime a free check
+
+**Decision.** `sched_arr_utc = sched_dep_utc + CRSElapsedTime`. CRSArrTime is not used to build
+the model; it is compared against the computed local arrival on every row.
+
+**Rejected.** Parsing CRSArrTime directly and inferring the overnight rollover from whether the
+arrival hhmm is smaller than the departure hhmm.
+
+**Why.** DESIGN.md §4 requires the timezone table be cross-checked against the offsets implied
+by CRSElapsedTime, since a wrong zone silently corrupts rotation ordering. Deriving arrival from
+the block turns that cross-check from a separate validation script into a property of the load:
+if a zone is wrong, every leg touching that airport disagrees with its own reported arrival time
+by exactly an hour. Measured over 544,003 legs, 543,995 agree. The 8 that do not are isolated
+rows whose CRSElapsedTime contradicts their own scheduled times -- one has a scheduled block of
+minus 64 minutes -- and no airport disagrees systematically, which is what distinguishes a bad
+row from a bad zone. All three hand-filled zones (BIH, EAR, XWA) agree on 100% of their legs.
+
+**Date.** 2026-08-05 (M2), from DESIGN.md §4, §9.
+
+## D13 — Destination belongs in the flight key
+
+**Decision.** A leg is keyed by date, carrier, flight number, origin, destination, and scheduled
+departure time.
+
+**Rejected.** DESIGN.md §4's key, which omits destination.
+
+**Why.** The design argued destination was redundant because flight numbers repeat on a route,
+not across routes. January 2026 contains a counterexample: F9 3237 out of JFK at 0659 on
+2026-01-04 is filed twice, once to CVG and once to LAS, both cancelled. One collision in 544,003
+rows is still a collision, and a primary key that is almost unique is not a primary key -- it
+would silently merge two legs during link derivation. Found by testing the key rather than
+assuming it.
+
+**Date.** 2026-08-05 (M2), from DESIGN.md §4.
+
+## D14 — Leave non-standard tail numbers exactly as reported
+
+**Decision.** Tail numbers are stored verbatim. No normalisation, no N-prefixing.
+
+**Rejected.** Prepending "N" to the 123 tails that lack it, to make the format uniform.
+
+**Why.** DESIGN.md §9 anticipated inconsistent leading-N formatting as a problem to repair. It is
+real -- 8,754 legs carry tails like "188NV" -- but it is entirely one carrier's reporting
+convention (Allegiant), and there are zero cases where the same aircraft appears in both forms.
+So normalising fixes nothing and asserts a registration that has not been verified against any
+registry. Chains are unaffected: every tail in the month is flown by exactly one reporting
+carrier, so the format never has to be reconciled across operators. The related finding is
+sharper than the design expected: tails are missing only on cancellations, never on a flown leg.
+
+**Date.** 2026-08-05 (M2), from DESIGN.md §9.
+
+## D15 — Build chains from the schedule, cancellations included
+
+**Decision.** A cancelled leg keeps its place in the tail's ordered line of flying and can be
+linked through.
+
+**Rejected.** Excluding cancelled legs before deriving next_leg.
+
+**Why.** Excluding them manufactures station discontinuities: with the cancelled leg removed, the
+aircraft's next scheduled departure appears to come from an airport it never flew to, and a
+genuine data gap becomes indistinguishable from a routine cancellation. It also buries the
+operational consequence in the wrong layer -- what a cancellation does to the rest of the day is
+exactly what cancel_flight and the propagation engine exist to compute, and they cannot reason
+about a leg that link derivation already deleted.
+
+**Date.** 2026-08-05 (M2), from DESIGN.md §5, §6.
+
+## D16 — impossible_turn, a third chain-break reason the design did not anticipate
+
+**Decision.** Where a tail's next leg is scheduled to depart before the current leg is scheduled
+to land, no link is created and the pair is recorded as `impossible_turn`. 6,256 of 512,451
+candidate links in January 2026.
+
+**Rejected.** Linking them anyway with a negative ground time. Silently dropping them.
+
+**Why.** DESIGN.md §5 anticipated two break reasons: station discontinuity and end of window.
+This is a third and distinct failure. Station continuity holds -- the aircraft does depart from
+where it landed -- but the timing is physically impossible, as with N574DT, reported on DL740
+JFK-SEA departing 21:40 UTC and DL415 SEA-JFK departing 21:45 UTC. The tail assignment cannot be
+right for both, most likely a swap that BTS recorded against the original schedule. Linking
+through it would compute a cascade for an aircraft that was never there, which is worse than a
+missing link because it is confidently wrong. 5,552 of the affected legs actually operated, so
+this is not a cancellation artefact.
+
+**Date.** 2026-08-05 (M2), from DESIGN.md §5.
+
+## D17 — LateAircraftDelay is an exact partition, so it can validate propagation
+
+**Decision.** M4 validates the propagation engine against BTS's own LateAircraftDelay attribution.
+
+**Rejected.** Treating the cause buckets as approximate, per DESIGN.md §9's expectation that they
+"need not sum to the total delay".
+
+**Why.** That expectation is falsified by the data. Across all 107,475 legs that carry cause
+buckets, the five buckets sum to the arrival delay exactly, with zero exceptions, and buckets
+appear if and only if arrival delay reaches 15 minutes. That makes LateAircraftDelay a clean
+independent measurement of how much of a leg's delay the carrier attributed to its inbound
+aircraft -- which is the quantity the propagation engine predicts. The validation is only as good
+as the assumption, so it is pinned by a test rather than left as a note.
+
+**Date.** 2026-08-05 (M2), from DESIGN.md §9, §10.
+
+## D18 — Commit the sample in the original BTS schema, gzipped
+
+**Decision.** The committed sample is Southwest's first week of January 2026 as raw BTS rows,
+all 110 columns, gzipped to 1.4 MB. The DuckDB file is rebuilt from it and is not committed.
+
+**Rejected.** Committing the built DuckDB file. Committing a slimmed CSV of only the columns the
+model reads.
+
+**Why.** Both alternatives create a second code path. A committed database skips the parser
+entirely, so tests would stop exercising the thing most likely to break; a slimmed CSV would
+diverge from the real file's shape the first time a column is added. Keeping the source schema
+means `load_month` handles the sample and the full month identically, and the sample still
+contains every anomaly the ingest has to survive: 2400 times, overnight legs, a negative
+scheduled block, a null tail on a cancellation, and all three chain-break reasons.
+
+**Date.** 2026-08-05 (M2), from DESIGN.md §12.
+
 ## Open, pending M1 discovery
 
 DESIGN.md §2 is a constructed persona, and the decisions above inherit its assumptions.

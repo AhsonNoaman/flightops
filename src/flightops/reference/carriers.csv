@@ -1,0 +1,22 @@
+# Reporting carrier reference.
+#
+# Source: DOT-assigned carrier names, transcribed. The BTS lookup endpoint returned HTTP 500
+#   on 2026-08-05 and the monthly zip's readme.html carries no carrier table.
+# Note: Reporting_Airline is the *operating* entity. Regionals (OO SkyWest, YX Republic,
+#   MQ Envoy, OH PSA) report separately from the mainline brand whose flights they fly, so a
+#   passenger's "American" itinerary can appear here under MQ or OH. The marketing-versus-
+#   operating split is a named limitation, not something this table resolves.
+code,name
+AA,American Airlines Inc.
+AS,Alaska Airlines Inc.
+B6,JetBlue Airways
+DL,Delta Air Lines Inc.
+F9,Frontier Airlines Inc.
+G4,Allegiant Air
+MQ,Envoy Air
+NK,Spirit Air Lines
+OH,PSA Airlines Inc.
+OO,SkyWest Airlines Inc.
+UA,United Air Lines Inc.
+WN,Southwest Airlines Co.
+YX,Republic Airline

@@ -1,0 +1,353 @@
+# Airport timezone reference.
+#
+# Source: OpenFlights airports.dat (https://github.com/jpatokal/openflights), IATA code and
+#   "Tz database time zone" columns, retrieved 2026-08-05.
+# Scope: only the airports appearing as an origin or destination in the ingested BTS month.
+# Manual entries: BIH, EAR, XWA are absent from OpenFlights; their zones are stated in
+#   scripts/build_reference.py with justification.
+# Validation: every row is cross-checked against the offset implied by CRSElapsedTime versus
+#   local-time deltas per city pair (flightops.ingest.timezones). That derivation is a check,
+#   not the source, because it is fragile around DST transitions and the 2400 convention.
+iata,city,iana_timezone,source
+ABE,Allentown,America/New_York,openflights
+ABI,Abilene,America/Chicago,openflights
+ABQ,Albuquerque,America/Denver,openflights
+ABR,Aberdeen,America/Chicago,openflights
+ACT,Waco,America/Chicago,openflights
+ACV,Arcata CA,America/Los_Angeles,openflights
+ACY,Atlantic City,America/New_York,openflights
+ADK,Adak Island,America/Adak,openflights
+ADQ,Kodiak,America/Anchorage,openflights
+AEX,Alexandria,America/Chicago,openflights
+AGS,Bush Field,America/New_York,openflights
+ALB,Albany,America/New_York,openflights
+ALO,Waterloo,America/Chicago,openflights
+AMA,Amarillo,America/Chicago,openflights
+ANC,Anchorage,America/Anchorage,openflights
+APN,Alpena,America/New_York,openflights
+ASE,Aspen,America/Denver,openflights
+ATL,Atlanta,America/New_York,openflights
+ATW,Appleton,America/Chicago,openflights
+ATY,Watertown,America/Chicago,openflights
+AUS,Austin,America/Chicago,openflights
+AVL,Asheville,America/New_York,openflights
+AVP,Scranton,America/New_York,openflights
+AZA,Mesa,America/Phoenix,openflights
+AZO,Kalamazoo,America/New_York,openflights
+BDL,Windsor Locks,America/New_York,openflights
+BET,Bethel,America/Anchorage,openflights
+BFF,Scottsbluff,America/Denver,openflights
+BFL,Bakersfield,America/Los_Angeles,openflights
+BGM,Binghamton,America/New_York,openflights
+BGR,Bangor,America/New_York,openflights
+BHM,Birmingham,America/Chicago,openflights
+BIH,"Bishop, CA",America/Los_Angeles,manual
+BIL,Billings,America/Denver,openflights
+BIS,Bismarck,America/Chicago,openflights
+BJI,Bemidji,America/Chicago,openflights
+BLI,Bellingham,America/Los_Angeles,openflights
+BLV,Belleville,America/Chicago,openflights
+BMI,Bloomington,America/Chicago,openflights
+BNA,Nashville,America/Chicago,openflights
+BOI,Boise,America/Denver,openflights
+BOS,Boston,America/New_York,openflights
+BPT,Beaumont,America/Chicago,openflights
+BQK,Brunswick,America/New_York,openflights
+BQN,Aguadilla,America/Puerto_Rico,openflights
+BRD,Brainerd,America/Chicago,openflights
+BRO,Brownsville,America/Chicago,openflights
+BRW,Barrow,America/Anchorage,openflights
+BTM,Butte,America/Denver,openflights
+BTR,Baton Rouge,America/Chicago,openflights
+BTV,Burlington,America/New_York,openflights
+BUF,Buffalo,America/New_York,openflights
+BUR,Burbank,America/Los_Angeles,openflights
+BWI,Baltimore,America/New_York,openflights
+BZN,Bozeman,America/Denver,openflights
+CAE,Columbia,America/New_York,openflights
+CAK,Akron,America/New_York,openflights
+CDC,Cedar City,America/Denver,openflights
+CDV,Cordova,America/Anchorage,openflights
+CHA,Chattanooga,America/New_York,openflights
+CHO,Charlottesville VA,America/New_York,openflights
+CHS,Charleston,America/New_York,openflights
+CID,Cedar Rapids,America/Chicago,openflights
+CIU,Sault Ste Marie,America/New_York,openflights
+CKB,Clarksburg,America/New_York,openflights
+CLD,Carlsbad,America/Los_Angeles,openflights
+CLE,Cleveland,America/New_York,openflights
+CLL,College Station,America/Chicago,openflights
+CLT,Charlotte,America/New_York,openflights
+CMH,Columbus,America/New_York,openflights
+CMI,Champaign,America/Chicago,openflights
+CMX,Hancock,America/New_York,openflights
+COD,Cody,America/Denver,openflights
+COS,Colorado Springs,America/Denver,openflights
+COU,Columbia,America/Chicago,openflights
+CPR,Casper,America/Denver,openflights
+CRP,Corpus Christi,America/Chicago,openflights
+CRW,Charleston,America/New_York,openflights
+CVG,Cincinnati,America/New_York,openflights
+CWA,Wassau,America/Chicago,openflights
+CYS,Cheyenne,America/Denver,openflights
+DAB,Daytona Beach,America/New_York,openflights
+DAL,Dallas,America/Chicago,openflights
+DAY,Dayton,America/New_York,openflights
+DCA,Washington,America/New_York,openflights
+DDC,Dodge City,America/Chicago,openflights
+DEC,Decatur,America/Chicago,openflights
+DEN,Denver,America/Denver,openflights
+DFW,Dallas-Fort Worth,America/Chicago,openflights
+DHN,Dothan,America/Chicago,openflights
+DIK,Dickinson,America/Denver,openflights
+DLH,Duluth,America/Chicago,openflights
+DRO,Durango,America/Denver,openflights
+DSM,Des Moines,America/Chicago,openflights
+DTW,Detroit,America/New_York,openflights
+DVL,Devils Lake,America/Chicago,openflights
+EAR,"Kearney, NE",America/Chicago,manual
+EAU,Eau Claire,America/Chicago,openflights
+ECP,Panama City,America/Chicago,openflights
+EGE,Vail,America/Denver,openflights
+EKO,Elko,America/Los_Angeles,openflights
+ELM,Elmira,America/New_York,openflights
+ELP,El Paso,America/Denver,openflights
+ESC,Escanaba,America/New_York,openflights
+EUG,Eugene,America/Los_Angeles,openflights
+EVV,Evansville,America/Chicago,openflights
+EWN,New Bern,America/New_York,openflights
+EWR,Newark,America/New_York,openflights
+EYW,Key West,America/New_York,openflights
+FAI,Fairbanks,America/Anchorage,openflights
+FAR,Fargo,America/Chicago,openflights
+FAT,Fresno,America/Los_Angeles,openflights
+FAY,Fayetteville,America/New_York,openflights
+FCA,Kalispell,America/Denver,openflights
+FLG,Flagstaff,America/Phoenix,openflights
+FLL,Fort Lauderdale,America/New_York,openflights
+FMN,Farmington,America/Denver,openflights
+FNT,Flint,America/New_York,openflights
+FOD,Fort Dodge,America/Chicago,openflights
+FSD,Sioux Falls,America/Chicago,openflights
+FSM,Fort Smith,America/Chicago,openflights
+FWA,Fort Wayne,America/New_York,openflights
+GCC,Gillette,America/Denver,openflights
+GCK,Garden City,America/Chicago,openflights
+GEG,Spokane,America/Los_Angeles,openflights
+GFK,Grand Forks,America/Chicago,openflights
+GGG,Longview,America/Chicago,openflights
+GJT,Grand Junction,America/Denver,openflights
+GNV,Gainesville,America/New_York,openflights
+GPT,Gulfport,America/Chicago,openflights
+GRB,Green Bay,America/Chicago,openflights
+GRI,Grand Island,America/Chicago,openflights
+GRK,Killeen,America/Chicago,openflights
+GRR,Grand Rapids,America/New_York,openflights
+GSO,Greensboro,America/New_York,openflights
+GSP,Greenville,America/New_York,openflights
+GTF,Great Falls,America/Denver,openflights
+GTR,Columbus Mississippi,America/Chicago,openflights
+GUC,Gunnison,America/Denver,openflights
+GUF,Gulf Shores,America/Chicago,openflights
+GUM,Agana,Pacific/Guam,openflights
+HDN,Hayden,America/Denver,openflights
+HGR,Hagerstown,America/New_York,openflights
+HHH,Hilton Head Island,America/New_York,openflights
+HIB,Hibbing,America/Chicago,openflights
+HLN,Helena,America/Denver,openflights
+HNL,Honolulu,Pacific/Honolulu,openflights
+HOB,Hobbs,America/Denver,openflights
+HOU,Houston,America/Chicago,openflights
+HPN,White Plains,America/New_York,openflights
+HRL,Harlingen,America/Chicago,openflights
+HSV,Huntsville,America/Chicago,openflights
+HTS,Huntington,America/New_York,openflights
+HYS,Hays,America/Chicago,openflights
+IAD,Washington,America/New_York,openflights
+IAG,Niagara Falls,America/New_York,openflights
+IAH,Houston,America/Chicago,openflights
+ICT,Wichita,America/Chicago,openflights
+IDA,Idaho Falls,America/Denver,openflights
+ILM,Wilmington,America/New_York,openflights
+IMT,Iron Mountain,America/Chicago,openflights
+IND,Indianapolis,America/New_York,openflights
+INL,International Falls,America/Chicago,openflights
+ISP,Islip,America/New_York,openflights
+ITO,Hilo,Pacific/Honolulu,openflights
+JAC,Jacksn Hole,America/Denver,openflights
+JAN,Jackson,America/Chicago,openflights
+JAX,Jacksonville,America/New_York,openflights
+JFK,New York,America/New_York,openflights
+JLN,Joplin,America/Chicago,openflights
+JMS,Jamestown,America/Chicago,openflights
+JNU,Juneau,America/Anchorage,openflights
+JST,Johnstown,America/New_York,openflights
+KOA,Kona,Pacific/Honolulu,openflights
+KTN,Ketchikan,America/Anchorage,openflights
+LAF,Lafayette,America/New_York,openflights
+LAN,Lansing,America/New_York,openflights
+LAR,Laramie,America/Denver,openflights
+LAS,Las Vegas,America/Los_Angeles,openflights
+LAW,Lawton,America/Chicago,openflights
+LAX,Los Angeles,America/Los_Angeles,openflights
+LBB,Lubbock,America/Chicago,openflights
+LBE,Latrobe,America/New_York,openflights
+LBF,North Platte,America/Chicago,openflights
+LBL,Liberal,America/Chicago,openflights
+LCH,Lake Charles,America/Chicago,openflights
+LCK,Columbus,America/New_York,openflights
+LEX,Lexington KY,America/New_York,openflights
+LFT,Lafayette,America/Chicago,openflights
+LGA,New York,America/New_York,openflights
+LGB,Long Beach,America/Los_Angeles,openflights
+LIH,Lihue,Pacific/Honolulu,openflights
+LIT,Little Rock,America/Chicago,openflights
+LNK,Lincoln,America/Chicago,openflights
+LRD,Laredo,America/Chicago,openflights
+LSE,La Crosse,America/Chicago,openflights
+LWS,Lewiston,America/Los_Angeles,openflights
+MAF,Midland,America/Chicago,openflights
+MBS,Saginaw,America/New_York,openflights
+MCI,Kansas City,America/Chicago,openflights
+MCO,Orlando,America/New_York,openflights
+MCW,Mason City,America/Chicago,openflights
+MDT,Harrisburg,America/New_York,openflights
+MDW,Chicago,America/Chicago,openflights
+MEI,Meridian,America/Chicago,openflights
+MEM,Memphis,America/Chicago,openflights
+MFE,Mcallen,America/Chicago,openflights
+MFR,Medford,America/Los_Angeles,openflights
+MGM,MONTGOMERY,America/Chicago,openflights
+MGW,Morgantown,America/New_York,openflights
+MHK,Manhattan,America/Chicago,openflights
+MHT,Manchester NH,America/New_York,openflights
+MIA,Miami,America/New_York,openflights
+MKE,Milwaukee,America/Chicago,openflights
+MLB,Melbourne,America/New_York,openflights
+MLI,Moline,America/Chicago,openflights
+MLU,Monroe,America/Chicago,openflights
+MOB,Mobile,America/Chicago,openflights
+MOT,Minot,America/Chicago,openflights
+MQT,Gwinn,America/New_York,openflights
+MRY,Monterey,America/Los_Angeles,openflights
+MSN,Madison,America/Chicago,openflights
+MSO,Missoula,America/Denver,openflights
+MSP,Minneapolis,America/Chicago,openflights
+MSY,New Orleans,America/Chicago,openflights
+MTJ,Montrose CO,America/Denver,openflights
+MYR,Myrtle Beach,America/New_York,openflights
+OAJ,Jacksonville NC,America/New_York,openflights
+OAK,Oakland,America/Los_Angeles,openflights
+OGG,Kahului,Pacific/Honolulu,openflights
+OKC,Oklahoma City,America/Chicago,openflights
+OMA,Omaha,America/Chicago,openflights
+OME,Nome,America/Anchorage,openflights
+ONT,Ontario,America/Los_Angeles,openflights
+ORD,Chicago,America/Chicago,openflights
+ORF,Norfolk,America/New_York,openflights
+ORH,Worcester,America/New_York,openflights
+OTH,North Bend,America/Los_Angeles,openflights
+OTZ,Kotzebue,America/Anchorage,openflights
+PAE,Everett,America/Los_Angeles,openflights
+PBG,Plattsburgh,America/New_York,openflights
+PBI,West Palm Beach,America/New_York,openflights
+PDX,Portland,America/Los_Angeles,openflights
+PGD,Punta Gorda,America/New_York,openflights
+PHL,Philadelphia,America/New_York,openflights
+PHX,Phoenix,America/Phoenix,openflights
+PIA,Peoria,America/Chicago,openflights
+PIB,Hattiesburg/Laurel,America/Chicago,openflights
+PIE,St. Petersburg,America/New_York,openflights
+PIH,Pocatello,America/Denver,openflights
+PIR,Pierre,America/Chicago,openflights
+PIT,Pittsburgh,America/New_York,openflights
+PLN,Pellston,America/New_York,openflights
+PNS,Pensacola,America/Chicago,openflights
+PPG,Pago Pago,Pacific/Pago_Pago,openflights
+PQI,Presque Isle,America/New_York,openflights
+PRC,Prescott,America/Phoenix,openflights
+PSC,Pasco,America/Los_Angeles,openflights
+PSE,Ponce,America/Puerto_Rico,openflights
+PSG,Petersburg,America/Anchorage,openflights
+PSM,Portsmouth,America/New_York,openflights
+PSP,Palm Springs,America/Los_Angeles,openflights
+PVD,Providence,America/New_York,openflights
+PVU,Provo,America/Denver,openflights
+PWM,Portland,America/New_York,openflights
+RAP,Rapid City,America/Denver,openflights
+RDD,Redding,America/Los_Angeles,openflights
+RDM,Redmond-Bend,America/Los_Angeles,openflights
+RDU,Raleigh-durham,America/New_York,openflights
+RFD,Rockford,America/Chicago,openflights
+RHI,Rhinelander,America/Chicago,openflights
+RIC,Richmond,America/New_York,openflights
+RIW,Riverton WY,America/Denver,openflights
+RKS,Rock Springs,America/Denver,openflights
+RNO,Reno,America/Los_Angeles,openflights
+ROA,Roanoke VA,America/New_York,openflights
+ROC,Rochester,America/New_York,openflights
+ROW,Roswell,America/Denver,openflights
+RST,Rochester,America/Chicago,openflights
+RSW,Fort Myers,America/New_York,openflights
+SAF,Santa Fe,America/Denver,openflights
+SAN,San Diego,America/Los_Angeles,openflights
+SAT,San Antonio,America/Chicago,openflights
+SAV,Savannah,America/New_York,openflights
+SBA,Santa Barbara,America/Los_Angeles,openflights
+SBN,South Bend,America/New_York,openflights
+SBP,San Luis Obispo,America/Los_Angeles,openflights
+SCC,Deadhorse,America/Anchorage,openflights
+SCE,State College Pennsylvania,America/New_York,openflights
+SCK,Stockton,America/Los_Angeles,openflights
+SDF,Louisville,America/New_York,openflights
+SEA,Seattle,America/Los_Angeles,openflights
+SFB,Sanford,America/New_York,openflights
+SFO,San Francisco,America/Los_Angeles,openflights
+SGF,Springfield,America/Chicago,openflights
+SGU,Saint George,America/Denver,openflights
+SHR,Sheridan,America/Denver,openflights
+SHV,Shreveport,America/Chicago,openflights
+SIT,Sitka,America/Anchorage,openflights
+SJC,San Jose,America/Los_Angeles,openflights
+SJT,San Angelo,America/Chicago,openflights
+SJU,San Juan,America/Puerto_Rico,openflights
+SLC,Salt Lake City,America/Denver,openflights
+SLN,Salina,America/Chicago,openflights
+SMF,Sacramento,America/Los_Angeles,openflights
+SMX,Santa Maria,America/Los_Angeles,openflights
+SNA,Santa Ana,America/Los_Angeles,openflights
+SPI,Springfield,America/Chicago,openflights
+SPN,Saipan,Pacific/Saipan,openflights
+SPS,Wichita Falls,America/Chicago,openflights
+SRQ,Sarasota,America/New_York,openflights
+STC,Saint Cloud,America/Chicago,openflights
+STL,St. Louis,America/Chicago,openflights
+STS,Santa Rosa,America/Los_Angeles,openflights
+STT,St. Thomas,America/St_Thomas,openflights
+STX,St. Croix Island,America/St_Thomas,openflights
+SUN,Hailey,America/Denver,openflights
+SUX,Sioux City,America/Chicago,openflights
+SWF,Newburgh,America/New_York,openflights
+SWO,Stillwater,America/Chicago,openflights
+SYR,Syracuse,America/New_York,openflights
+TLH,Tallahassee,America/New_York,openflights
+TOL,Toledo,America/New_York,openflights
+TPA,Tampa,America/New_York,openflights
+TRI,BRISTOL,America/New_York,openflights
+TTN,Trenton,America/New_York,openflights
+TUL,Tulsa,America/Chicago,openflights
+TUS,Tucson,America/Phoenix,openflights
+TVC,Traverse City,America/New_York,openflights
+TWF,Twin Falls,America/Denver,openflights
+TXK,Texarkana,America/Chicago,openflights
+TYR,Tyler,America/Chicago,openflights
+TYS,Knoxville,America/New_York,openflights
+USA,Concord,America/New_York,openflights
+VCT,Victoria,America/Chicago,openflights
+VPS,Valparaiso,America/Chicago,openflights
+VRB,Vero Beach,America/New_York,openflights
+WRG,Wrangell,America/Anchorage,openflights
+XNA,Bentonville,America/Chicago,openflights
+XWA,"Williston, ND",America/Chicago,manual
+YAK,Yakutat,America/Anchorage,openflights
+YUM,Yuma,America/Phoenix,openflights

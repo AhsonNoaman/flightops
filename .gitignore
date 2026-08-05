@@ -1,2 +1,19 @@
 .local/
 .env
+.venv/
+__pycache__/
+*.pyc
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
+# Raw BTS downloads and the full-month database are rebuilt by scripts/fetch_data.py.
+# Only the committed sample under data/sample/ is tracked.
+data/raw/
+data/*.duckdb
+
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+data/sample/*.duckdb
+*.egg-info/
