@@ -1,0 +1,254 @@
+"""Run the ten-question eval against both agents and write the transcripts.
+
+    ANTHROPIC_API_KEY=... python scripts/run_eval.py             # live, both agents
+    ANTHROPIC_API_KEY=... python scripts/run_eval.py --agent ontology
+    python scripts/run_eval.py --replay                          # re-grade what is committed
+
+Live runs cost money and are the only way to produce the n-out-of-10 in the README; `--replay`
+re-grades the committed transcripts offline and is what CI and a fresh clone can do. The two
+modes share the grading code, so a replayed score is the same score, just not a fresh one.
+
+Transcripts land in data/transcripts/<agent>/<question_id>.json and are committed. They are the
+evidence: the summary table is a claim, the transcripts are what backs it.
+"""
+
+from __future__ import annotations
+
+import argparse
+import os
+import sys
+from collections.abc import Iterator
+from contextlib import contextmanager
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
+
+from flightops.agent import baseline, evalset, loop, prompts, tools  # noqa: E402
+from flightops.ingest.loader import connect, load_month, load_reference  # noqa: E402
+from flightops.ingest.rotation import derive_next_leg  # noqa: E402
+from flightops.model.store import ObjectStore  # noqa: E402
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
+SAMPLE_CSV = REPO_ROOT / "data" / "sample" / "bts_wn_2026_01_w1.csv.gz"
+SAMPLE_DB = REPO_ROOT / "data" / "sample" / "sample.duckdb"
+TRANSCRIPTS = REPO_ROOT / "data" / "transcripts"
+
+AGENTS = ("ontology", "sql")
+
+
+def ensure_sample_database() -> Path:
+    """Build the sample database from the committed CSV if it is not already there.
+
+    The eval runs against the sample rather than the full month on purpose: the full month is
+    gitignored, and a transcript nobody else can reproduce is not evidence.
+    """
+    if SAMPLE_DB.exists():
+        return SAMPLE_DB
+    if not SAMPLE_CSV.exists():
+        raise SystemExit(
+            f"missing {SAMPLE_CSV}; run scripts/fetch_data.py --month 2026-01 --sample"
+        )
+    print(f"building {SAMPLE_DB.name} from {SAMPLE_CSV.name} ...")
+    connection = connect(SAMPLE_DB)
+    load_reference(connection)
+    load_month(connection, SAMPLE_CSV)
+    derive_next_leg(connection)
+    connection.close()
+    return SAMPLE_DB
+
+
+@contextmanager
+def _agent_setup(
+    name: str, store: ObjectStore, database: Path
+) -> Iterator[tuple[str, list[dict[str, object]], loop.ToolExecutor]]:
+    """The system prompt, tool schemas, and executor for one agent."""
+    if name == "ontology":
+        context = tools.ToolContext.open(store)
+        yield (
+            prompts.ontology_system_prompt(store),
+            list(tools.TOOL_SCHEMAS),
+            loop.ontology_executor(context),
+        )
+    elif name == "sql":
+        with baseline.SqlBaseline(database) as sql:
+            yield prompts.sql_system_prompt(store), [baseline.SQL_TOOL_SCHEMA], sql.executor()
+    else:
+        raise SystemExit(f"unknown agent {name!r}; expected one of {', '.join(AGENTS)}")
+
+
+def transcript_path(agent: str, question_id: str) -> Path:
+    return TRANSCRIPTS / agent / f"{question_id}.json"
+
+
+def run_live(agent: str, questions: tuple[evalset.Question, ...], database: Path) -> None:
+    transport = loop.LiveTransport()
+    with ObjectStore(database) as store, _agent_setup(agent, store, database) as setup:
+        system, schemas, execute = setup
+        for question in questions:
+            print(f"  [{agent}] {question.question_id} ...", end="", flush=True)
+            transcript = loop.run(
+                question_id=question.question_id,
+                question=question.question,
+                agent=agent,
+                system=system,
+                tools=schemas,  # type: ignore[arg-type]
+                execute=execute,
+                transport=transport,
+            )
+            transcript.write(transcript_path(agent, question.question_id))
+            print(
+                f" {len(transcript.tool_calls)} tool calls, "
+                f"${transcript.cost_usd:.3f}"
+                + (f", ERROR: {transcript.error}" if transcript.error else "")
+            )
+
+
+def grade_recorded(agent: str, questions: tuple[evalset.Question, ...]) -> list[evalset.Grade]:
+    grades: list[evalset.Grade] = []
+    for question in questions:
+        path = transcript_path(agent, question.question_id)
+        if not path.exists():
+            grades.append(evalset.Grade(question.question_id, False, ("no transcript recorded",)))
+            continue
+        grades.append(question.grade(loop.Transcript.read(path).answer))
+    return grades
+
+
+def report(agent: str, grades: list[evalset.Grade]) -> None:
+    passed, total = evalset.score(grades)
+    print(f"\n{agent}: {passed} / {total}")
+    for grade in grades:
+        mark = "pass" if grade.passed else "FAIL"
+        print(f"  {mark:>4}  {grade.question_id}")
+        for failure in grade.failures:
+            print(f"          - {failure}")
+
+
+def write_docs() -> Path:
+    """Render docs/EVAL.md from the eval set, so the questions are readable without Python.
+
+    Generated rather than hand-written on purpose: a documented eval that has drifted from the
+    one that actually runs is worse than no document, and the only way to guarantee it has not
+    drifted is to stop maintaining a second copy.
+    """
+    lines = [
+        "# The eval set",
+        "",
+        "<!-- Generated by scripts/run_eval.py --docs. Edit "
+        "src/flightops/agent/evalset.py instead. -->",
+        "",
+        "Ten operational questions with hand-verified answers, asked of two agents over the "
+        "same data: the ontology agent, which has `find_objects`, `traverse_links` and "
+        "`simulate_action`; and a SQL baseline, which has the schema, the derived rotation "
+        "tables, the projection formula, and one read-only `SELECT` tool. Same model, same "
+        "preamble, same row cap.",
+        "",
+        "Every expected value below was computed against the committed sample "
+        "(`data/sample/bts_wn_2026_01_w1.csv.gz`: Southwest, 2026-01-01 to 2026-01-07, 26,161 "
+        "flights). Grading is programmatic -- cited ids, numeric values, required and forbidden "
+        "phrasings -- not an LLM judge.",
+        "",
+        "Scores and transcripts: `python scripts/run_eval.py --replay`, and `data/transcripts/`.",
+        "",
+    ]
+    for index, question in enumerate(evalset.QUESTIONS, start=1):
+        lines += [
+            f"## {index}. {question.question_id}",
+            "",
+            f"**Asked:** {question.question}",
+            "",
+            f"**Hand-verified answer:** {question.reference}",
+            "",
+            f"**Verified by:** `{question.verified_by}`",
+            "",
+            f"**What it tests:** {question.tests}",
+            "",
+            "**Graded on:** "
+            + "; ".join(
+                filter(
+                    None,
+                    [
+                        (
+                            "cites " + ", ".join(f"`{cited}`" for cited in question.must_cite)
+                            if question.must_cite
+                            else ""
+                        ),
+                        (
+                            "reports "
+                            + ", ".join(
+                                f"{check.value:g} ({check.label})" for check in question.must_report
+                            )
+                            if question.must_report
+                            else ""
+                        ),
+                        (
+                            "mentions "
+                            + ", ".join(
+                                "/".join(alternatives) for alternatives in question.must_mention
+                            )
+                            if question.must_mention
+                            else ""
+                        ),
+                        (
+                            "does not claim "
+                            + ", ".join(f"{claim!r}" for claim in question.must_not_claim)
+                            if question.must_not_claim
+                            else ""
+                        ),
+                    ],
+                )
+            ),
+            "",
+        ]
+    path = REPO_ROOT / "docs" / "EVAL.md"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("\n".join(lines))
+    return path
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--agent", choices=AGENTS, action="append", help="default: both")
+    parser.add_argument("--question", action="append", help="question id; default: all ten")
+    parser.add_argument(
+        "--replay",
+        action="store_true",
+        help="skip the API and grade the committed transcripts",
+    )
+    parser.add_argument(
+        "--docs",
+        action="store_true",
+        help="regenerate docs/EVAL.md from the eval set and exit",
+    )
+    args = parser.parse_args()
+
+    if args.docs:
+        print(f"wrote {write_docs().relative_to(REPO_ROOT)}")
+        return 0
+
+    agents = tuple(args.agent) if args.agent else AGENTS
+    if args.question:
+        missing = [q for q in args.question if q not in evalset.BY_ID]
+        if missing:
+            raise SystemExit(f"unknown question id(s): {', '.join(missing)}")
+        questions = tuple(evalset.BY_ID[q] for q in args.question)
+    else:
+        questions = evalset.QUESTIONS
+
+    if not args.replay and not os.environ.get("ANTHROPIC_API_KEY"):
+        raise SystemExit(
+            "ANTHROPIC_API_KEY is not set. A live run is the only way to produce fresh scores; "
+            "use --replay to grade the committed transcripts instead."
+        )
+
+    database = ensure_sample_database()
+    for agent in agents:
+        if not args.replay:
+            print(f"running {agent} against {len(questions)} questions")
+            run_live(agent, questions, database)
+        report(agent, grade_recorded(agent, questions))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -269,6 +269,23 @@ class ObjectStore:
                     return []
                 return list(self.rotation(flight.tail_number, flight.flight_date))
 
+    def coverage(self) -> tuple[str, str, list[str]]:
+        """First date, last date, and the carriers present in the loaded data.
+
+        Exists so callers that describe the data -- the agent's prompt, the README, the API's
+        health response -- state what was actually ingested rather than what someone assumed
+        was. A prompt that promises a month and gets a week produces confident wrong answers.
+        """
+        span = self._connection.execute(
+            "SELECT min(flight_date)::VARCHAR, max(flight_date)::VARCHAR FROM flights"
+        ).fetchone()
+        if span is None or span[0] is None:
+            raise RuntimeError("no flights loaded: cannot describe coverage")
+        carriers = self._connection.execute(
+            "SELECT DISTINCT carrier FROM flights ORDER BY carrier"
+        ).fetchall()
+        return str(span[0]), str(span[1]), [str(row[0]) for row in carriers]
+
     def turn_time_estimates(
         self, *, quantile: float, min_ground_minutes: int, min_sample: int
     ) -> tuple[dict[tuple[str, str], int], dict[str, int], int]:

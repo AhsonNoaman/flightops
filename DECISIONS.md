@@ -504,6 +504,143 @@ live, which is the honest reason the invariant is worth having.
 
 **Date.** 2026-08-05 (M5), from DESIGN.md §6, §7.
 
+## D29 — The agent loop is hand-written, not the SDK's tool runner
+
+**Decision.** `agent/loop.py` drives the request-execute-repeat cycle directly against the
+Messages API. Every assistant turn is stored as raw content blocks and every tool call with its
+verbatim result.
+
+**Rejected.** `client.beta.messages.tool_runner`, which does the same cycle with less code.
+
+**Why.** DESIGN.md §11 requires published, replayable transcripts, and the message list is the
+transcript. The runner owns the message list; getting it back out means reconstructing what
+happened from what the helper chose to expose. An eval whose evidence is a summary of the run
+rather than the run is not checkable, and checkability is the entire claim being made. The cost
+is about sixty lines, which is the right trade for owning the artefact.
+
+**Date.** 2026-08-06 (M6), from DESIGN.md §11.
+
+## D30 — Scenarios are keyed by a caller-supplied id, with the clock pinned once
+
+**Decision.** `simulate_action` takes a `scenario_id` (default `"default"`). Actions sharing one
+land in the same overlay. The clock is set from the first target's scheduled departure minus one
+minute and never moves.
+
+**Rejected.** A fresh scenario per tool call; a clock set to the wall-clock present.
+
+**Why.** Two problems, one fix. Every flight in the data has already operated, so a real "now"
+makes `is_pending` reject everything and no action is ever legal. And a recovery has to be
+measured against a world where the delay exists -- a swap simulated against an undelayed rotation
+clears nothing, so every recovery answer would read "saves 0 minutes" and the model would have no
+way to tell that from a genuinely worthless swap. Both are covered by a test that asserts the
+composed swap clears 565 minutes and the isolated one clears zero.
+
+**Date.** 2026-08-06 (M6), from DESIGN.md §6, §11.
+
+## D31 — Tool results cap at 40 rows and always say when they truncated
+
+**Decision.** `find_objects` and the baseline's `run_sql` both return at most 40 rows and add a
+`truncated` message naming the problem when there were more.
+
+**Rejected.** A larger cap; silent truncation; no cap.
+
+**Why.** The failure this prevents is not cost, it is a confident wrong answer: a model that
+counts a list it believes is complete produces a number with no hedge in it. Saying so in the
+result turns a silent miscount into a visible instruction to narrow the filter. The same cap
+applies to both agents so neither can win on result volume.
+
+**Date.** 2026-08-06 (M6), from DESIGN.md §11.
+
+## D32 — Tool arguments are validated in the dispatcher, not by `strict: true`
+
+**Decision.** The three tool schemas are plain JSON Schema. Every argument is checked in Python,
+and a bad one comes back as a sentence naming the valid values.
+
+**Rejected.** Structured outputs' `strict: true` on the tool schemas.
+
+**Why.** Two reasons, and the second is the honest one. A rejection is a real output of these
+tools -- "unknown link 'downstream'; the ontology has flown_by, operated_by, ..." teaches the
+model what to do next, where a schema violation just fails. And `strict` mode's handling of
+optional properties could not be verified against the live API without a key, so shipping it
+would have meant guessing at a 400 nobody could reproduce. Revisit once there is a key.
+
+**Date.** 2026-08-06 (M6), from DESIGN.md §11.
+
+## D33 — Grading is programmatic; there is no LLM judge
+
+**Decision.** Each question carries object ids that must be cited, numeric values with
+tolerances, required phrasings, and forbidden claims. `Question.grade` is about twenty lines.
+
+**Rejected.** A model grading the answers against the reference.
+
+**Why.** A judge is a second model marking the first one's homework with no ground truth of its
+own, and its disagreements cannot be adjudicated. These checks are crude -- a number satisfies
+its check by appearing anywhere in the answer -- but they are inspectable, and paired with the
+citation requirement they mean any passing answer can be re-verified by hand in about a minute.
+A guard against the obvious failure mode: every hand-verified reference answer is run through its
+own grader in `tests/test_agents.py`, so a check its own correct answer cannot pass is a test
+failure rather than a surprise during a paid run.
+
+**Date.** 2026-08-06 (M6), from DESIGN.md §11.
+
+## D34 — The baseline gets the derived rotation tables and the projection formula
+
+**Decision.** The SQL baseline's prompt includes `next_leg`, `chain_breaks` and
+`rotation_sequence`, the propagation recurrence written out, and the exact turn-time percentile
+rule. Both prompts are built from one shared preamble, and a test asserts they start with the
+same bytes.
+
+**Rejected.** Giving the baseline only the raw `flights` table.
+
+**Why.** Withholding the derived links would make the comparison meaningless: M2's rotation
+derivation is a data-engineering result, not a property of the object layer, and hiding it would
+measure the wrong thing. The one asymmetry that remains is stated rather than hidden -- the
+ontology agent's `simulate_action` calls the shipped propagation engine while the baseline
+re-derives the projection in SQL per question. That gap is not an unfair prompt; it is the
+hypothesis under test.
+
+**Date.** 2026-08-06 (M6), from DESIGN.md §11.
+
+## D35 — Two questions the object layer can lose stay in the set
+
+**Decision.** `cancellations-by-reason` asks for a count of 106 objects through a tool that
+returns 40. `unanswerable-aircraft-type` has no answer in the data at all.
+
+**Rejected.** Replacing the aggregate with one that fits under the cap; raising the cap for it;
+dropping the unanswerable question.
+
+**Why.** The honest ceiling for the three tools on the aggregate is "more than 40, I cannot count
+exactly"; SQL answers it with one `GROUP BY`. Keeping it means the published table shows where
+the typed layer costs you, which is the difference between an eval and a demo. Whatever the
+result, the writeup says so. The unanswerable question is there because BTS carries a tail number
+but no aircraft type and no passenger data, and a model that pattern-matches Southwest to a 737
+produces a fluent unverifiable answer -- exactly the failure the citation discipline exists to
+make impossible.
+
+**Date.** 2026-08-06 (M6), from DESIGN.md §11.
+
+## D36 — The eval runs against the committed sample, not the full month
+
+**Decision.** Every hand-verified answer and every transcript comes from
+`data/sample/bts_wn_2026_01_w1.csv.gz` -- Southwest, 2026-01-01 to 2026-01-07, 26,161 flights.
+
+**Rejected.** Running it against the full ingested month.
+
+**Why.** The full month is gitignored and rebuilt on demand, so a transcript recorded against it
+could not be re-verified by anyone cloning the repo, and replay would then assert nothing. The
+sample is produced by the same ingest code path, so the eval is not running on a toy.
+
+**Date.** 2026-08-06 (M6), from DESIGN.md §11, §12.
+
+## Open, pending the live eval run
+
+The ten questions, the graders, both agents, the loop and the replay harness are complete and
+tested offline. The one thing missing is the result: `ANTHROPIC_API_KEY` is not set in this
+environment, so no live run has happened, no transcripts exist under `data/transcripts/`, and
+there is no n-out-of-10 for either agent. `scripts/run_eval.py --replay` reports 0/10 with "no
+transcript recorded" against every question, which is the correct reading of an eval that has not
+been run. Nothing in the README or the writeup should claim a score until it has.
+
 ## Open, pending M1 discovery
 
 DESIGN.md §2 is a constructed persona, and the decisions above inherit its assumptions.
