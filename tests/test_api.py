@@ -110,6 +110,20 @@ def test_disruptions_rank_by_downstream_minutes_not_by_delay(client: TestClient)
     assert all(event["cause"] != "late_aircraft" for event in events)
 
 
+def test_the_ranking_reaches_the_end_of_the_day(client: TestClient) -> None:
+    """Regression: the candidate fetch used to cut off mid-evening.
+
+    `find_flights` orders by scheduled departure, so a limit below a full day silently drops the
+    late roots. On 2026-01-03 that hid 104 legs delayed 100 minutes or more, all after 23:10
+    UTC, and the ranking still looked right because that day's worst root departs in the
+    morning. WN4124 PHX-SFO leaves at 01:40 UTC on the 4th and belongs near the top.
+    """
+    events = client.get("/api/disruptions", params={"date": "2026-01-03", "limit": 10}).json()
+    roots = [event["root_flight_id"] for event in events]
+    assert "2026-01-03|WN|4124|PHX|SFO|1840" in roots
+    assert max(event["affected"][-1]["projected_dep_utc"] for event in events) > "2026-01-04"
+
+
 def test_a_date_outside_the_loaded_window_is_rejected_with_the_window(client: TestClient) -> None:
     """The cache is keyed on the date, so an unbounded date is an unbounded number of keys."""
     response = client.get("/api/disruptions", params={"date": "1999-01-01"})

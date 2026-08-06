@@ -54,8 +54,8 @@ downstream, the valuable thing is not a cascade visualiser — it is the ranking
 which delays are in the other half. On 2026-01-03 the four latest departures of the day (422,
 367, 362 and 324 minutes) are all absent from that ranking — three because their own delay was
 inherited from a late inbound, and the 422 because its rotation record cannot be followed past
-that leg — while the top row is a 142-minute delay that cost 565 downstream minutes and eleventh is a
-54-minute delay that cost 201.
+that leg — while the top row is a 142-minute delay that cost 565 downstream minutes across five
+legs, two rows above a 343-minute delay that cost 338 across one.
 
 **Propagation, checked against the data's own answer.** BTS records `LateAircraftDelay`: the
 carrier's own attribution of how much of a leg's delay came from its inbound aircraft. It is

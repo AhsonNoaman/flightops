@@ -29,9 +29,9 @@ how many minutes and legs it cost downline.
 > 367, 362 and 324 minutes down — and not one of them is on the list. Three of them were late
 > because their own inbound aircraft was late, so they are somebody else's cascade, not a new
 > one. The fourth, the 422, has a rotation the record cannot follow past that leg, so the tool
-> says it does not know rather than guessing. Top of the list instead is a **142**-minute delay that
-> cost 565 minutes across five legs, and eleventh is a **54**-minute delay that cost 201 across
-> four. Sorted by lateness, you would have worked the wrong aeroplane.
+> says it does not know rather than guessing. Top of the list instead is a **142**-minute delay
+> that cost 565 minutes across five legs — two rows above a **343**-minute delay that cost 338
+> across one. Sorted by lateness, you would have worked the wrong aeroplane.
 
 ## Task 2 — See where it lands, and what gets absorbed (3 minutes)
 

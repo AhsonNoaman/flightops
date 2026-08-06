@@ -28,6 +28,16 @@ MAX_CANDIDATES = 80
 """Ceiling on chains walked per request. Each projection is a handful of indexed lookups, and
 the ranking is stable well before eighty because the tail of the delay distribution is thin."""
 
+CANDIDATE_FETCH_LIMIT = 6000
+"""Every qualifying leg on the day, not a slice of them.
+
+`find_flights` orders by scheduled departure, so any limit below a full day silently drops the
+evening. That is not a smaller answer, it is a wrong one: fetching 320 candidates on 2026-01-03
+left out 104 legs delayed by 100 minutes or more, all of them after 23:10 UTC, and the ranking
+still looked plausible because the worst root of that day happened to depart in the morning. The
+bound that matters is the day, and a day is at most a few thousand delayed legs.
+"""
+
 
 def rank_disruptions(
     store: ObjectStore,
@@ -45,7 +55,7 @@ def rank_disruptions(
     candidates = store.find_flights(
         flight_date=flight_date,
         min_dep_delay=min_delay_minutes,
-        limit=MAX_CANDIDATES * 4,
+        limit=CANDIDATE_FETCH_LIMIT,
     )
     if not candidates:
         return []
