@@ -1,4 +1,5 @@
-# Render deployment for the API, as an alternative to Fly. Same image, same read-only data.
+# Render deployment for the API. The service definition lives here rather than in a dashboard
+# so the deploy is reproducible from the repository by someone who is not me.
 #
 # ANTHROPIC_API_KEY is declared but not set: live question-answering stays off unless someone
 # deliberately adds it in the dashboard, so a public URL cannot accrue cost by default.

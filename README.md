@@ -151,7 +151,7 @@ inventing a 737.
 ## Architecture
 
 ```
-  Vercel (static export)                  Fly.io / Render (container)
+  Vercel (static export)                  Render (container)
   ┌───────────────────────┐   fetch       ┌──────────────────────────────────┐
   │ Next.js, no server    │ ────────────► │ FastAPI                          │
   │ ranked list           │               │  ├── ObjectStore (read-only)     │

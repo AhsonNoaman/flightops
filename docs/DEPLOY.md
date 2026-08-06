@@ -4,7 +4,7 @@ Two pieces, deployed separately because they have opposite cost profiles: a stat
 should be free forever, and an API that carries a 7 MB database and needs a process.
 
 ```
-  Vercel (static)                    Fly.io or Render (container)
+  Vercel (static)                    Render (container)
   ┌────────────────────┐  fetch      ┌───────────────────────────────┐
   │ Next.js export     │ ──────────► │ FastAPI + uvicorn             │
   │ NEXT_PUBLIC_API_URL│             │ DuckDB, read-only, in the image│
@@ -29,14 +29,22 @@ curl localhost:8000/api/health
 ```
 
 **Render (the default here)** — `render.yaml` is checked in; point a new Blueprint at the repo
-from the dashboard and it reads the file. No CLI, no local credentials, no payment card, and the
+from the dashboard and it reads the file. No CLI, no local credentials, no payment card. The
 deploy is driven entirely from the GitHub repo, which is the property that matters for something
-meant to outlive the laptop it was built on. The free tier sleeps when idle, so the first request
-after a quiet spell waits out a cold start — the frontend retries for a minute and says so
-rather than showing a broken page.
+meant to outlive the laptop it was built on: the service definition is a committed file, not a
+form someone filled in once. The free tier sleeps after about fifteen minutes idle, so the first
+request after a quiet spell waits out a cold start of roughly a minute — the frontend retries and
+says so rather than showing a broken page.
 
-**Fly.io** — `fly.toml` is checked in, as the move-to option. Faster and more reliable than a
-sleeping free instance, but it wants a payment card and a CLI login.
+**Koyeb** — the alternative if that cold start is the thing you can't live with: an hour of idle
+tolerance instead of fifteen minutes, and it wakes in one to five seconds instead of one minute.
+Also cardless in the normal case, though it will ask for a card to verify you are human if it
+cannot do so automatically. Build from the repo's `Dockerfile`, port 8000. The cost is that
+Koyeb has no repo manifest — the service is defined in their dashboard or CLI, so unlike
+`render.yaml` it is one more thing that exists outside this repository.
+
+**Fly.io** — `fly.toml` is checked in and still works, but new accounts need a payment card, so
+this is the paid move-to rather than a free option.
 
 ```bash
 fly launch --no-deploy --copy-config   # claims the app name in fly.toml
@@ -44,15 +52,13 @@ fly deploy
 fly open /api/health
 ```
 
-Either way the unit being deployed is the same image built from this repository, so moving
-between them — or onto a plain VPS — is one command and a changed URL in the frontend's
-environment.
+All three deploy the same image built from this repository, so moving between them — or onto a
+plain VPS — is one command and a changed URL in the frontend's environment.
 
-To switch live answering on afterwards, and only then:
-
-```bash
-fly secrets set ANTHROPIC_API_KEY=sk-ant-...     # or the Render dashboard
-```
+Live answering costs money and stays off until a key is set, which is a deliberate default
+rather than an omission: the frontend renders the ten committed eval transcripts instead, and
+those cannot be cherry-picked after the fact. To switch it on, set `ANTHROPIC_API_KEY` in the
+host's environment (the Render dashboard, or `fly secrets set`).
 
 ## 2. The frontend
 
