@@ -311,6 +311,72 @@ scheduled block, a null tail on a cancellation, and all three chain-break reason
 
 **Date.** 2026-08-05 (M2), from DESIGN.md §12.
 
+## D19 — previous_leg is an inverse traversal, not a new link
+
+**Decision.** The store exposes `previous_leg` alongside `next_leg`, implemented as a lookup on
+the same stored table by `to_flight_id`.
+
+**Rejected.** Exposing only the forward link, per DESIGN.md §5's list. Storing a second table.
+
+**Why.** Triage runs backwards. The operator does not start from a root cause; they start from a
+late flight on the board and need to know what put it there. With only the forward link, every
+caller answering "why is this late" would have to scan for the flight that links to it, which
+means writing SQL outside the store -- the one thing the store exists to prevent. This adds no
+object, no table, and no ambiguity: it is the same edge read from the other end.
+
+**Date.** 2026-08-05 (M3), from DESIGN.md §5, §11.
+
+## D20 — The overlay is an in-memory dict, not a DuckDB temp table
+
+**Decision.** A `Scenario` holds a pinned clock and a `dict[flight_id, Flight]` of overridden
+legs. Reads check the dict, then fall through to the store.
+
+**Rejected.** Materialising each scenario as a DuckDB temp table or view and querying through
+COALESCE.
+
+**Why.** The deployed API opens the database read-only, so a scenario that needs to write to it
+is a contradiction, not a design. An in-memory overlay makes session isolation free -- two
+operators replaying the same day cannot see each other, which is asserted by a test -- and it
+keeps the immutability guarantee checkable in one place instead of spread across SQL. The cost
+would be scale, and there is none to pay: an action touches one rotation, tens of legs, not
+thousands. The base file stays what DESIGN.md §7 says it is, historical fact.
+
+**Date.** 2026-08-05 (M3), from DESIGN.md §7.
+
+## D21 — Pending is decided by the scenario clock, not the recorded status
+
+**Decision.** `Scenario.is_pending` compares a leg's scheduled departure against the pinned
+clock. The BTS status field is used only to exclude legs already cancelled in the source data.
+
+**Rejected.** Treating the recorded status as the precondition input.
+
+**Why.** Every leg in the base data has already happened -- it is a completed month. If actions
+keyed off the recorded status, nothing would ever be actionable, because every flight is already
+`arrived` or `cancelled`. Replay only means anything if "now" is a position inside the day, so
+the clock is what decides whether a flight can still be delayed, swapped, or cancelled. This is
+also what makes preconditions deterministic: the same scenario replays identically tomorrow,
+which the eval set at M6 depends on.
+
+**Date.** 2026-08-05 (M3), from DESIGN.md §6, §7.
+
+## D22 — The store refuses a turn estimate below 30 observations
+
+**Decision.** `turn_percentile` returns None when a carrier-station pair has fewer than 30
+observed turns, leaving the fallback to the caller.
+
+**Rejected.** Returning the quantile regardless. Silently falling back carrier-wide inside the
+store.
+
+**Why.** DESIGN.md §10 makes min_turn a percentile of observed ground times with "a minimum
+sample threshold, falling back carrier-wide". A percentile over four turns at a small station is
+noise presented as a measurement, and propagation would inherit it invisibly. Returning None
+forces the choice into the propagation engine where it can be seen, tested, and reported. The
+station-level distribution justifies the effort: measured p05 turn times differ sharply by
+carrier -- WN 35 minutes, OO 30, DL 47, UA 56 -- so a single global constant would be wrong for
+almost everyone.
+
+**Date.** 2026-08-05 (M3), from DESIGN.md §10.
+
 ## Open, pending M1 discovery
 
 DESIGN.md §2 is a constructed persona, and the decisions above inherit its assumptions.
