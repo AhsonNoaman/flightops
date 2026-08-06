@@ -377,6 +377,94 @@ almost everyone.
 
 **Date.** 2026-08-05 (M3), from DESIGN.md §10.
 
+## D23 — Both propagation thresholds are measured, and only one touches the arithmetic
+
+**Decision.** min_turn is the 5th percentile of observed ground times per carrier and station,
+excluding turns under 15 minutes, requiring 30 observations before a station-level estimate is
+used. The turn-versus-overnight boundary is 285 minutes. The overnight boundary labels a
+termination reason and is deliberately kept out of every calculation.
+
+**Rejected.** A single global minimum turn time. Letting the overnight threshold decide
+absorption.
+
+**Why.** The measured distribution is bimodal exactly as DESIGN.md §10 predicted -- a turn mode
+peaking at 60-89 minutes, a minimum-density bin at 270-299, an overnight mode rising from 360 --
+so 285 is the centre of the trough rather than a round number. Per-carrier turn estimates differ
+too much for a constant to be defensible: WN 35 minutes at LAS, UA 57 at ORD. Excluding sub-15
+minute turns matters because 1,943 links show scheduled ground times no narrowbody can achieve,
+including zeros, and they drag the 5th percentile from 33 to 31.
+
+Keeping the overnight boundary out of the arithmetic is the load-bearing half of this. Absorption
+is already decided by the `max` in the projection formula, which handles a ten-hour sit correctly
+without being told it is overnight. If the constant also gated propagation, then an empirical
+choice made once would silently move every number the tool reports. A test asserts that changing
+it from 285 to 60 relabels terminations and leaves every projected minute identical.
+
+**Date.** 2026-08-05 (M4), from DESIGN.md §10.
+
+## D24 — Validate against LateAircraftDelay, and report the error rather than tune it away
+
+**Decision.** The engine is scored against BTS's own late-aircraft attribution on the same legs.
+The residual error is published, not minimised.
+
+**Rejected.** Fitting min_turn, or adding a recovery factor, until projections match the recorded
+outcomes.
+
+**Why.** The gap between projection and outcome is not noise to be removed; it is the tool's
+subject. The engine projects a do-nothing world, while the recorded data is a world where a
+controller swapped a tail, called a spare, or told a crew to turn fast. Tuning the model to
+reproduce the recorded outcome would make it predict the recovery that the operator has not
+decided to make yet, which is precisely the decision the tool exists to support.
+
+Measured on the full month: mean error +19.8 minutes, median +14, 59% of legs within 30 minutes.
+The asymmetry is the operationally important part -- 117 legs where the engine warned and BTS
+attributed nothing, and **zero** where BTS attributed a cascade the engine missed. For triage,
+over-warning is visible and correctable; under-warning is neither.
+
+**Date.** 2026-08-05 (M4), from DESIGN.md §10.
+
+## D25 — The model's error is carrier-dependent, and that is a finding, not a defect
+
+**Decision.** Report per-carrier calibration rather than a single accuracy number. Tests assert
+calibration for the sample carrier, not a universal direction of error.
+
+**Rejected.** A single headline accuracy figure. Asserting that the model always over-predicts.
+
+**Why.** This was written first as a test claiming the error must be biased high, on the
+reasoning that scheduled blocks are padded (actual beats scheduled by a median 8-9 minutes across
+every carrier) and crews compress turns when late (SkyWest 66 scheduled versus 48 actual
+minutes). The test failed. On Southwest's week the mean error is -0.5 minutes.
+
+Measuring per carrier explains it: SkyWest +74, United +28, Republic +27, American +16, Southwest
++6, Frontier -7. The aggregate +19.8 was almost entirely SkyWest, the largest group in the
+sample. The error is a measure of how aggressively a carrier recovers, and a regional flying for
+several mainlines has the most spare aircraft and the most reason to swap. Southwest's dense
+point-to-point rotations leave the least room to recover, so its outcomes sit closest to the
+do-nothing projection.
+
+This changes what the tool should claim. A single accuracy number would have been an average
+across operating models that behave differently, and it would have read as precision the model
+does not have.
+
+**Date.** 2026-08-05 (M4), from DESIGN.md §10.
+
+## D26 — Cascades damp per leg while the total exceeds the root
+
+**Decision.** Cascade size is reported as summed downstream attributed minutes, and the README
+will state that per-leg delay decays.
+
+**Rejected.** The brief's framing, in which a 40-minute delay at ORD "becomes" a three-hour
+cascade at DEN.
+
+**Why.** DESIGN.md §10 flagged the brief for presuming amplification and required measuring
+first. Measured: the pinned Southwest cascade decays 142, 127, 117, 112, 107, 102 down the
+rotation as scheduled slack absorbs it at every turn, while the sum across the five downstream
+legs reaches 565 minutes. Both statements are true and they are different claims. The honest one
+is that a root delay spreads across many legs rather than growing on any one of them -- which is
+still the operator's problem, because it is five late flights instead of one.
+
+**Date.** 2026-08-05 (M4), from DESIGN.md §10.
+
 ## Open, pending M1 discovery
 
 DESIGN.md §2 is a constructed persona, and the decisions above inherit its assumptions.

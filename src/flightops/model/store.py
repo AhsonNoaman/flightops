@@ -269,6 +269,48 @@ class ObjectStore:
                     return []
                 return list(self.rotation(flight.tail_number, flight.flight_date))
 
+    def turn_time_estimates(
+        self, *, quantile: float, min_ground_minutes: int, min_sample: int
+    ) -> tuple[dict[tuple[str, str], int], dict[str, int], int]:
+        """Observed turn-time quantiles per carrier-station, per carrier, and network-wide.
+
+        Lives here because the store owns the SQL. The propagation engine consumes the three
+        levels and decides the fallback order; it never sees a query.
+        """
+        per_station = {
+            (str(carrier), str(station)): int(minutes)
+            for carrier, station, minutes in self._connection.execute(
+                """
+                SELECT f.carrier, f.destination,
+                       CAST(quantile_cont(n.ground_minutes, ?) AS INTEGER)
+                FROM next_leg n JOIN flights f ON f.flight_id = n.from_flight_id
+                WHERE n.ground_minutes BETWEEN ? AND 480
+                GROUP BY 1, 2 HAVING count(*) >= ?
+                """,
+                [quantile, min_ground_minutes, min_sample],
+            ).fetchall()
+        }
+        per_carrier = {
+            str(carrier): int(minutes)
+            for carrier, minutes in self._connection.execute(
+                """
+                SELECT f.carrier, CAST(quantile_cont(n.ground_minutes, ?) AS INTEGER)
+                FROM next_leg n JOIN flights f ON f.flight_id = n.from_flight_id
+                WHERE n.ground_minutes BETWEEN ? AND 480
+                GROUP BY 1
+                """,
+                [quantile, min_ground_minutes],
+            ).fetchall()
+        }
+        row = self._connection.execute(
+            "SELECT CAST(quantile_cont(ground_minutes, ?) AS INTEGER) FROM next_leg "
+            "WHERE ground_minutes BETWEEN ? AND 480",
+            [quantile, min_ground_minutes],
+        ).fetchone()
+        if row is None or row[0] is None:
+            raise RuntimeError("no observed turns: cannot estimate minimum turn times")
+        return per_station, per_carrier, int(row[0])
+
     def turn_percentile(self, carrier: str, station: str, quantile: float) -> int | None:
         """Observed ground-time quantile for a carrier at a station, the min_turn input.
 

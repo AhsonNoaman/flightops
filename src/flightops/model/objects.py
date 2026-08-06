@@ -171,6 +171,10 @@ class ChainTermination(StrEnum):
     CANCELLATION = "cancellation"
     CHAIN_BREAK = "chain_break"
     END_OF_WINDOW = "end_of_window"
+    GUARD_LIMIT = "guard_limit"
+    """The walk hit its leg bound before the delay was absorbed. Reported rather than hidden:
+    a cascade this long means either an implausible root delay or a corrupt chain, and either
+    way the operator should see that the answer is truncated."""
 
 
 class AffectedLeg(BaseModel):
