@@ -1,0 +1,54 @@
+# The same checks `make check` runs locally, so a green tick means the same thing here as there.
+#
+# The eval is deliberately not run: it needs an API key and costs money per question. What CI
+# does check is that the committed transcripts still replay -- that the tools would answer the
+# recorded calls the same way today, which is the regression that would quietly invalidate a
+# published score.
+name: check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - run: pip install -e '.[dev,agent]'
+      - run: ruff format --check src tests scripts
+      - run: ruff check src tests scripts
+      - run: mypy
+      - run: pytest -q
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+
+  image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t flightops-api .
+      - name: the container serves real data
+        run: |
+          docker run -d --name api -p 8000:8000 flightops-api
+          for _ in $(seq 1 30); do curl -sf localhost:8000/api/health && break; sleep 1; done
+          curl -sf "localhost:8000/api/disruptions?date=2026-01-03&limit=1" > /dev/null

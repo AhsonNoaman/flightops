@@ -25,8 +25,11 @@ Section 10 also requires the known error sources be stated rather than discovere
 
 from __future__ import annotations
 
+import sys
 from dataclasses import dataclass
 from datetime import timedelta
+from pathlib import Path
+from statistics import median
 
 from flightops.model.objects import FlightStatus
 from flightops.model.scenario import Scenario
@@ -150,3 +153,111 @@ def validate_against_bts(
         ),
         comparisons=comparisons,
     )
+
+
+@dataclass(frozen=True)
+class ShapeResult:
+    """How cascades are actually shaped, measured rather than assumed.
+
+    DESIGN.md section 10 commits to measuring this before claiming it, because the brief's
+    motivating example -- forty minutes at one station becoming three hours by evening --
+    conflates two different claims. Per-leg delay decaying down a rotation and summed downstream
+    minutes exceeding the root delay are not the same statement, and the data supports them to
+    very different degrees.
+    """
+
+    roots_examined: int
+    roots_with_a_cascade: int
+    median_sum_over_root: float
+    mean_sum_over_root: float
+    share_sum_exceeds_root: float
+    median_first_leg_over_root: float
+    median_legs_affected: float
+
+    def render(self) -> str:
+        absorbed = self.roots_examined - self.roots_with_a_cascade
+        share_absorbed = 100 * absorbed / self.roots_examined if self.roots_examined else 0.0
+        return "\n".join(
+            [
+                f"roots examined:            {self.roots_examined:,}",
+                f"propagated nothing:        {absorbed:,} ({share_absorbed:.0f}%)",
+                f"median first leg / root:   {self.median_first_leg_over_root:.2f}x",
+                f"median legs affected:      {self.median_legs_affected:.0f}",
+                f"median sum / root:         {self.median_sum_over_root:.2f}x",
+                f"mean sum / root:           {self.mean_sum_over_root:.2f}x",
+                f"sum exceeds root:          {self.share_sum_exceeds_root:.0f}% of cascades",
+            ]
+        )
+
+
+def measure_cascade_shape(
+    store: ObjectStore, *, min_root_delay: int = 60, max_roots: int = 500
+) -> ShapeResult:
+    """Ratios of downstream minutes to root delay, over real roots.
+
+    Same root definition as the BTS comparison above -- a leg delayed by at least
+    `min_root_delay` whose own delay is not itself mostly inherited -- so the two tables are
+    measured over the same population and can be read together.
+    """
+    engine = PropagationEngine(build_turn_model(store))
+    sums: list[float] = []
+    firsts: list[float] = []
+    legs: list[int] = []
+    examined = 0
+
+    for root in store.find_flights(min_dep_delay=min_root_delay, limit=max_roots * 8):
+        if root.tail_number is None or root.causes is None or root.dep_delay_minutes is None:
+            continue
+        if root.causes.late_aircraft > root.causes.total / 2:
+            continue
+        examined += 1
+        scenario = Scenario(store=store, clock=root.sched_dep_utc - timedelta(minutes=1))
+        event = engine.project(scenario, root.flight_id, root.dep_delay_minutes)
+        if not event.affected:
+            continue
+        sums.append(event.total_propagated_minutes / root.dep_delay_minutes)
+        firsts.append(event.affected[0].propagated_delay_minutes / root.dep_delay_minutes)
+        legs.append(len(event.affected))
+        if len(sums) >= max_roots:
+            break
+
+    if not sums:
+        return ShapeResult(examined, 0, 0.0, 0.0, 0.0, 0.0, 0.0)
+    return ShapeResult(
+        roots_examined=examined,
+        roots_with_a_cascade=len(sums),
+        median_sum_over_root=median(sums),
+        mean_sum_over_root=sum(sums) / len(sums),
+        share_sum_exceeds_root=100 * sum(1 for ratio in sums if ratio > 1) / len(sums),
+        median_first_leg_over_root=median(firsts),
+        median_legs_affected=median(legs),
+    )
+
+
+def main(argv: list[str]) -> int:
+    """Reproduce the two tables in the README.
+
+        python -m flightops.propagation.validate [database.duckdb]
+
+    Defaults to the committed sample, which is the one a fresh clone can run.
+    """
+    default = Path(__file__).resolve().parents[3] / "data" / "sample" / "sample.duckdb"
+    database = Path(argv[1]) if len(argv) > 1 else default
+    if not database.exists():
+        raise SystemExit(f"no database at {database}; run `python -m flightops.ingest.sample`")
+
+    with ObjectStore(database) as store:
+        first, last, carriers = store.coverage()
+        print(
+            f"{database.name}: {first} to {last}, {store.flight_count():,} flights, "
+            f"{len(carriers)} carrier(s)\n"
+        )
+        print("-- projection against BTS LateAircraftDelay")
+        print(validate_against_bts(store).render())
+        print("\n-- cascade shape")
+        print(measure_cascade_shape(store).render())
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main(sys.argv))
