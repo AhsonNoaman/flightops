@@ -22,20 +22,48 @@ import { QuestionPanel } from '@/components/QuestionPanel';
 export default function Page() {
   const [health, setHealth] = useState<Health | null>(null);
   const [failure, setFailure] = useState<string | null>(null);
+  const [waking, setWaking] = useState(false);
   const [date, setDate] = useState<string>('');
   const [events, setEvents] = useState<DisruptionEvent[] | null>(null);
   const [selected, setSelected] = useState<DisruptionEvent | null>(null);
 
   useEffect(() => {
-    api
-      .health()
-      .then((body) => {
-        setHealth(body);
-        // The worst day in the committed sample. Landing on an empty day would make a working
-        // deployment look broken, so the default is chosen from the data, not hardcoded.
-        setDate(body.last_date >= '2026-01-03' ? '2026-01-03' : body.first_date);
-      })
-      .catch((error: ApiError) => setFailure(error.message));
+    // Free container hosting sleeps when idle, so the first visitor after a quiet spell waits
+    // out a cold start. Retrying quietly for a minute is the difference between "this project
+    // is dead" and "this took a moment" -- and a portfolio link is mostly read cold.
+    let cancelled = false;
+    let attempt = 0;
+
+    async function connect(): Promise<void> {
+      while (!cancelled && attempt < 20) {
+        try {
+          const body = await api.health();
+          if (cancelled) return;
+          setHealth(body);
+          setWaking(false);
+          setFailure(null);
+          // The worst day in the committed sample. Landing on an empty day would make a working
+          // deployment look broken, so the default is chosen from the data, not hardcoded.
+          setDate(body.last_date >= '2026-01-03' ? '2026-01-03' : body.first_date);
+          return;
+        } catch (error) {
+          attempt += 1;
+          if (cancelled) return;
+          if (attempt >= 20) {
+            setWaking(false);
+            setFailure(error instanceof ApiError ? error.message : String(error));
+            return;
+          }
+          setWaking(true);
+          await new Promise((resolve) => setTimeout(resolve, 3000));
+        }
+      }
+    }
+
+    void connect();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -75,7 +103,18 @@ export default function Page() {
         </label>
       </header>
 
-      {failure && <div className="error" style={{ margin: 12 }}>{failure}</div>}
+      {waking && (
+        <div className="note" style={{ margin: 12 }}>
+          Waking the API. It sleeps when nobody is using it, so a first visit after a quiet spell
+          takes up to a minute.
+        </div>
+      )}
+      {failure && (
+        <div className="error" style={{ margin: 12 }}>
+          {failure} The API is hosted separately from this page and may be down; the repository,
+          the container image and the recorded eval do not depend on it.
+        </div>
+      )}
 
       <div className="grid">
         <section className="pane">
