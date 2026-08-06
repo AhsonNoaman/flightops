@@ -67,8 +67,7 @@ class Scenario:
         rotation returned in stale order would silently mislead every caller downstream.
         """
         legs = [
-            self.get_flight(leg.flight_id)
-            for leg in self.store.rotation(tail_number, flight_date)
+            self.get_flight(leg.flight_id) for leg in self.store.rotation(tail_number, flight_date)
         ]
         return sorted(legs, key=lambda leg: (leg.sched_dep_utc, leg.flight_id))
 
@@ -123,6 +122,5 @@ class Scenario:
             return f"scenario at {self.clock:%Y-%m-%d %H:%M} UTC, no changes applied"
         applied = "; ".join(change.summary for change in self.changes)
         return (
-            f"scenario at {self.clock:%Y-%m-%d %H:%M} UTC, "
-            f"{len(self.changes)} applied: {applied}"
+            f"scenario at {self.clock:%Y-%m-%d %H:%M} UTC, {len(self.changes)} applied: {applied}"
         )

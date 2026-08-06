@@ -5,6 +5,10 @@ description = "Ontology-backed operational intelligence for US flight disruption
 requires-python = ">=3.11"
 dependencies = [
     "duckdb>=1.0",
+    # duckdb converts TIMESTAMPTZ to Python datetimes through pytz and declares it optional.
+    # Every timestamp in this schema is TIMESTAMPTZ, so it is not optional here -- the dev venv
+    # happened to have it transitively and the container build is what surfaced the gap.
+    "pytz>=2024.1",
     "pydantic>=2.7",
     "fastapi>=0.110",
     "uvicorn[standard]>=0.29",

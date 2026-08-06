@@ -120,8 +120,7 @@ class ObjectStore:
 
     def get_aircraft(self, tail_number: str) -> Aircraft:
         row = self._connection.execute(
-            "SELECT tail_number, any_value(carrier) FROM flights WHERE tail_number = ? "
-            "GROUP BY 1",
+            "SELECT tail_number, any_value(carrier) FROM flights WHERE tail_number = ? GROUP BY 1",
             [tail_number],
         ).fetchone()
         if row is None:
@@ -285,6 +284,11 @@ class ObjectStore:
             "SELECT DISTINCT carrier FROM flights ORDER BY carrier"
         ).fetchall()
         return str(span[0]), str(span[1]), [str(row[0]) for row in carriers]
+
+    def flight_count(self) -> int:
+        """How many flights are loaded. A count, not a fetch: the API's health check calls it."""
+        row = self._connection.execute("SELECT count(*) FROM flights").fetchone()
+        return int(row[0]) if row else 0
 
     def turn_time_estimates(
         self, *, quantile: float, min_ground_minutes: int, min_sample: int

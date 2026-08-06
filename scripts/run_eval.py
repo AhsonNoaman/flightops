@@ -24,37 +24,13 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 from flightops.agent import baseline, evalset, loop, prompts, tools  # noqa: E402
-from flightops.ingest.loader import connect, load_month, load_reference  # noqa: E402
-from flightops.ingest.rotation import derive_next_leg  # noqa: E402
+from flightops.ingest.sample import build_sample_database  # noqa: E402
 from flightops.model.store import ObjectStore  # noqa: E402
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-SAMPLE_CSV = REPO_ROOT / "data" / "sample" / "bts_wn_2026_01_w1.csv.gz"
-SAMPLE_DB = REPO_ROOT / "data" / "sample" / "sample.duckdb"
 TRANSCRIPTS = REPO_ROOT / "data" / "transcripts"
 
 AGENTS = ("ontology", "sql")
-
-
-def ensure_sample_database() -> Path:
-    """Build the sample database from the committed CSV if it is not already there.
-
-    The eval runs against the sample rather than the full month on purpose: the full month is
-    gitignored, and a transcript nobody else can reproduce is not evidence.
-    """
-    if SAMPLE_DB.exists():
-        return SAMPLE_DB
-    if not SAMPLE_CSV.exists():
-        raise SystemExit(
-            f"missing {SAMPLE_CSV}; run scripts/fetch_data.py --month 2026-01 --sample"
-        )
-    print(f"building {SAMPLE_DB.name} from {SAMPLE_CSV.name} ...")
-    connection = connect(SAMPLE_DB)
-    load_reference(connection)
-    load_month(connection, SAMPLE_CSV)
-    derive_next_leg(connection)
-    connection.close()
-    return SAMPLE_DB
 
 
 @contextmanager
@@ -241,7 +217,7 @@ def main() -> int:
             "use --replay to grade the committed transcripts instead."
         )
 
-    database = ensure_sample_database()
+    database = build_sample_database()
     for agent in agents:
         if not args.replay:
             print(f"running {agent} against {len(questions)} questions")

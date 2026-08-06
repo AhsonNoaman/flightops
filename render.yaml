@@ -1,0 +1,16 @@
+# Render deployment for the API, as an alternative to Fly. Same image, same read-only data.
+#
+# ANTHROPIC_API_KEY is declared but not set: live question-answering stays off unless someone
+# deliberately adds it in the dashboard, so a public URL cannot accrue cost by default.
+services:
+  - type: web
+    name: flightops-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      - key: PORT
+        value: 8000
+      - key: ANTHROPIC_API_KEY
+        sync: false

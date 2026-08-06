@@ -632,6 +632,83 @@ sample is produced by the same ingest code path, so the eval is not running on a
 
 **Date.** 2026-08-06 (M6), from DESIGN.md §11, §12.
 
+## D37 — The landing view ranks roots, not late flights
+
+**Decision.** `/api/disruptions` returns one event per aircraft, ranked by minutes forced onto
+downstream legs. A leg whose largest BTS cause bucket is `late_aircraft` is excluded as a
+consequence rather than a cause.
+
+**Rejected.** Ranking the day's flights by departure delay, which is what the data hands you.
+
+**Why.** A list sorted by delay shows one disruption five times: the aircraft that went late at
+08:55 appears again at 10:55, 14:40, 15:45 and 17:35, each as its own late flight, and the
+second-worst problem of the day never makes the screen. The exclusion rule is not a heuristic
+invented here -- BTS already records which legs were late because their inbound aircraft was
+late, so the distinction is read from the data rather than guessed. On 2026-01-03 the top row is
+WN3851 PHX-SFO with 565 downstream minutes, which is the cascade the eval set is built around.
+
+**Date.** 2026-08-06 (M7), from DESIGN.md §2, §4.
+
+## D38 — Scenario sessions are in-memory, bounded, and expiring
+
+**Decision.** Scenarios live in a process-local `OrderedDict` with a 200-session cap, a 30-minute
+idle TTL, and a 25-action limit each. Nothing is persisted. The cap evicts the least recently
+used rather than refusing new sessions.
+
+**Rejected.** A session table in the database (there is no writable database); a cookie or token
+(nothing here is worth authenticating); no limit at all (the URL is public).
+
+**Why.** DESIGN.md §7 already says the base file is immutable and a scenario is an overlay, which
+means session state has nowhere to go but memory and nothing to lose on restart. Evicting rather
+than refusing is the right failure: a demo that stops accepting new sandboxes because someone
+left tabs open is worse than one that forgets an idle hypothetical. The action limit exists
+because "delay this by 5 minutes" is cheap to send in a loop.
+
+**Date.** 2026-08-06 (M7), from DESIGN.md §7.
+
+## D39 — A rejected action is 409 with the precondition text, not 400 with "invalid"
+
+**Decision.** `PreconditionFailed` becomes HTTP 409 and the response body is the precondition
+string verbatim. The frontend renders it as-is.
+
+**Rejected.** Mapping domain rejections to a generic 400 and a sanitised message.
+
+**Why.** M5 spent its effort making rejections say the useful thing -- "N8528Q lands at PHX at
+14:05 UTC and needs 38 min to turn, which is 12 min short of the 14:35 departure" -- and a
+transport layer that replaces that with "invalid request" throws away the most valuable output
+the domain produces. 409 rather than 400 because the request was well formed; it was the world
+that said no.
+
+**Date.** 2026-08-06 (M7), from DESIGN.md §6.
+
+## D40 — The frontend is a static export; the API is a container with the data baked in
+
+**Decision.** Next.js with `output: 'export'`, deployed to Vercel as files on a CDN, reading
+everything from the API at runtime. The API is a Docker image that builds `sample.duckdb` from
+the committed CSV during the build and opens it read-only.
+
+**Rejected.** Server-side rendering or Next API routes (a serverless function with nothing to
+do, and a second place for secrets to live); a mounted volume or hosted database for the API.
+
+**Why.** The two halves have opposite cost profiles and should not share a runtime. The frontend
+holds no secrets and needs no server, so it should be free and cacheable. The API needs a
+process and 7 MB of immutable data, which an image holds perfectly well -- and building the
+database during the image build means the deployed data is reproducible from the repository
+rather than copied off a laptop.
+
+The build caught a real bug the dev environment was hiding: duckdb converts `TIMESTAMPTZ` through
+`pytz` and declares it optional, the virtualenv had it transitively, and every timestamp in this
+schema is `TIMESTAMPTZ`. `/api/health` passed and `/api/disruptions` returned a 500 in the
+container. It is now a declared dependency.
+
+**Date.** 2026-08-06 (M7), from BRIEF M7, DESIGN.md §7.
+
+## Open, pending deployment
+
+The API image builds and serves; the frontend builds, renders and drives the whole flow against
+it. Neither is deployed: `gh` is not authenticated in this environment and the Vercel CLI is not
+installed, so no public URL exists yet. `docs/DEPLOY.md` has the exact commands.
+
 ## Open, pending the live eval run
 
 The ten questions, the graders, both agents, the loop and the replay harness are complete and

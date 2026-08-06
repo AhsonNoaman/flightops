@@ -59,9 +59,7 @@ def run_checks(connection: duckdb.DuckDBPyConnection) -> QualityReport:
                 "diverted": diverted,
                 "carriers": scalar(connection, "SELECT count(DISTINCT carrier) FROM flights"),
                 "airports": scalar(connection, "SELECT count(DISTINCT origin) FROM flights"),
-                "tails": scalar(
-                    connection, "SELECT count(DISTINCT tail_number) FROM flights"
-                ),
+                "tails": scalar(connection, "SELECT count(DISTINCT tail_number) FROM flights"),
             },
             verdict="loaded",
         )

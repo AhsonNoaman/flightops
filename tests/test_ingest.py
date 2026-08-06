@@ -104,9 +104,7 @@ def test_no_link_turns_in_negative_time(db: duckdb.DuckDBPyConnection) -> None:
     """A negative ground time is not a turn; those pairs belong in chain_breaks, not next_leg."""
     assert db.execute("SELECT count(*) FROM next_leg WHERE ground_minutes < 0").fetchone()[0] == 0
     assert (
-        db.execute("SELECT count(*) FROM chain_breaks WHERE reason='impossible_turn'").fetchone()[
-            0
-        ]
+        db.execute("SELECT count(*) FROM chain_breaks WHERE reason='impossible_turn'").fetchone()[0]
         > 0
     )
 

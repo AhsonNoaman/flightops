@@ -134,11 +134,7 @@ def validate_against_bts(
 
     errors = sorted(comparison.error for comparison in comparisons)
     middle = len(errors) // 2
-    median = (
-        float(errors[middle])
-        if len(errors) % 2
-        else (errors[middle - 1] + errors[middle]) / 2
-    )
+    median = float(errors[middle]) if len(errors) % 2 else (errors[middle - 1] + errors[middle]) / 2
     return ValidationResult(
         roots_tested=roots_tested,
         legs_compared=len(comparisons),
@@ -147,14 +143,10 @@ def validate_against_bts(
         within_15_minutes=sum(1 for c in comparisons if abs(c.error) <= 15),
         within_30_minutes=sum(1 for c in comparisons if abs(c.error) <= 30),
         engine_predicted_nonzero_bts_zero=sum(
-            1
-            for c in comparisons
-            if c.projected_minutes > 0 and c.bts_late_aircraft_minutes == 0
+            1 for c in comparisons if c.projected_minutes > 0 and c.bts_late_aircraft_minutes == 0
         ),
         bts_nonzero_engine_zero=sum(
-            1
-            for c in comparisons
-            if c.projected_minutes == 0 and c.bts_late_aircraft_minutes > 0
+            1 for c in comparisons if c.projected_minutes == 0 and c.bts_late_aircraft_minutes > 0
         ),
         comparisons=comparisons,
     )

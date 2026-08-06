@@ -67,9 +67,7 @@ def test_real_cascade_projects_the_legs_it_actually_hit(
     store: ObjectStore, engine: PropagationEngine
 ) -> None:
     """The pinned case: a real 142-minute delay working down a real rotation."""
-    event = engine.project(
-        _scenario_before(store, CASCADE_ROOT), CASCADE_ROOT, CASCADE_ROOT_DELAY
-    )
+    event = engine.project(_scenario_before(store, CASCADE_ROOT), CASCADE_ROOT, CASCADE_ROOT_DELAY)
     assert event.tail_number == "N8633A"
     assert event.cause == "nas"
     assert [(leg.flight_id, leg.propagated_delay_minutes) for leg in event.affected] == (
@@ -89,9 +87,7 @@ def test_real_cascade_tracks_the_carriers_own_attribution(
     faster and flew faster to recover. Tightening this would only be possible by fitting to the
     answer.
     """
-    event = engine.project(
-        _scenario_before(store, CASCADE_ROOT), CASCADE_ROOT, CASCADE_ROOT_DELAY
-    )
+    event = engine.project(_scenario_before(store, CASCADE_ROOT), CASCADE_ROOT, CASCADE_ROOT_DELAY)
     errors = []
     for leg in event.affected:
         downstream = store.get_flight(leg.flight_id)
@@ -107,9 +103,7 @@ def test_cascade_damps_down_the_rotation(store: ObjectStore, engine: Propagation
     damps: 142 minutes at the root becomes 102 by the fifth leg. The total across legs is larger
     than the root delay, which is a different claim and the one the tool actually makes.
     """
-    event = engine.project(
-        _scenario_before(store, CASCADE_ROOT), CASCADE_ROOT, CASCADE_ROOT_DELAY
-    )
+    event = engine.project(_scenario_before(store, CASCADE_ROOT), CASCADE_ROOT, CASCADE_ROOT_DELAY)
     projected = [leg.propagated_delay_minutes for leg in event.affected]
     assert projected == sorted(projected, reverse=True)
     assert projected[0] < CASCADE_ROOT_DELAY
@@ -128,9 +122,12 @@ def test_small_delay_is_absorbed_by_scheduled_slack(
 ) -> None:
     """The whole reason cascades are bounded: slack in the schedule soaks up small delays."""
     event = engine.project(_scenario_before(store, CASCADE_ROOT), CASCADE_ROOT, 5)
-    assert event.total_propagated_minutes < engine.project(
-        _scenario_before(store, CASCADE_ROOT), CASCADE_ROOT, 120
-    ).total_propagated_minutes
+    assert (
+        event.total_propagated_minutes
+        < engine.project(
+            _scenario_before(store, CASCADE_ROOT), CASCADE_ROOT, 120
+        ).total_propagated_minutes
+    )
 
 
 def test_bigger_root_never_produces_a_smaller_cascade(
@@ -150,9 +147,7 @@ def test_projection_never_moves_a_leg_earlier(
     store: ObjectStore, engine: PropagationEngine
 ) -> None:
     """A delay cannot pull a departure forward. Projected departure is bounded below by schedule."""
-    event = engine.project(
-        _scenario_before(store, CASCADE_ROOT), CASCADE_ROOT, CASCADE_ROOT_DELAY
-    )
+    event = engine.project(_scenario_before(store, CASCADE_ROOT), CASCADE_ROOT, CASCADE_ROOT_DELAY)
     for leg in event.affected:
         scheduled = store.get_flight(leg.flight_id)
         assert leg.projected_dep_utc >= scheduled.sched_dep_utc
@@ -161,9 +156,7 @@ def test_projection_never_moves_a_leg_earlier(
 
 
 def test_cascade_stays_on_one_aircraft(store: ObjectStore, engine: PropagationEngine) -> None:
-    event = engine.project(
-        _scenario_before(store, CASCADE_ROOT), CASCADE_ROOT, CASCADE_ROOT_DELAY
-    )
+    event = engine.project(_scenario_before(store, CASCADE_ROOT), CASCADE_ROOT, CASCADE_ROOT_DELAY)
     for leg in event.affected:
         assert store.get_flight(leg.flight_id).tail_number == event.tail_number
 

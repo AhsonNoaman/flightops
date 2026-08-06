@@ -77,9 +77,7 @@ def test_delay_rejects_zero_and_negative_minutes(
         assert "greater than zero" in caught.value.precondition
 
 
-def test_delay_rejects_an_empty_reason(
-    actions: Actions, scenario: Scenario, root: Flight
-) -> None:
+def test_delay_rejects_an_empty_reason(actions: Actions, scenario: Scenario, root: Flight) -> None:
     with pytest.raises(PreconditionFailed) as caught:
         actions.delay_flight(scenario, root.flight_id, 30, "   ")
     assert "reason" in caught.value.precondition
@@ -119,9 +117,7 @@ def test_cancel_releases_the_downstream_delay(
     assert all(leg.after_delay_minutes == 0 for leg in diff.legs)
 
 
-def test_cancel_rejects_a_flight_already_cancelled(
-    actions: Actions, store: ObjectStore
-) -> None:
+def test_cancel_rejects_a_flight_already_cancelled(actions: Actions, store: ObjectStore) -> None:
     cancelled = store.find_flights(status=FlightStatus.CANCELLED, limit=1)
     assert cancelled
     flight = cancelled[0]
@@ -131,9 +127,7 @@ def test_cancel_rejects_a_flight_already_cancelled(
     assert "already cancelled" in caught.value.precondition
 
 
-def test_cancel_rejects_an_empty_reason(
-    actions: Actions, scenario: Scenario, root: Flight
-) -> None:
+def test_cancel_rejects_an_empty_reason(actions: Actions, scenario: Scenario, root: Flight) -> None:
     with pytest.raises(PreconditionFailed) as caught:
         actions.cancel_flight(scenario, root.flight_id, "")
     assert "reason" in caught.value.precondition
@@ -272,9 +266,7 @@ def test_applied_actions_are_recorded_in_order(
     assert "gate hold" in scenario.describe()
 
 
-def test_diff_renders_for_an_operator(
-    actions: Actions, scenario: Scenario, root: Flight
-) -> None:
+def test_diff_renders_for_an_operator(actions: Actions, scenario: Scenario, root: Flight) -> None:
     rendered = actions.delay_flight(scenario, root.flight_id, 142, "de-icing").render()
     assert "WN3851 PHX-SFO" in rendered
     assert "net system minutes" in rendered
