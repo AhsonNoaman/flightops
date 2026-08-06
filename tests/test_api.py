@@ -110,6 +110,20 @@ def test_disruptions_rank_by_downstream_minutes_not_by_delay(client: TestClient)
     assert all(event["cause"] != "late_aircraft" for event in events)
 
 
+def test_a_date_outside_the_loaded_window_is_rejected_with_the_window(client: TestClient) -> None:
+    """The cache is keyed on the date, so an unbounded date is an unbounded number of keys."""
+    response = client.get("/api/disruptions", params={"date": "1999-01-01"})
+    assert response.status_code == 422
+    assert "2026-01-01 to 2026-01-07" in response.json()["detail"]
+
+
+def test_the_ranking_is_cached_and_still_returns_a_fresh_list(client: TestClient) -> None:
+    first = client.get("/api/disruptions", params={"date": "2026-01-03", "limit": 5}).json()
+    second = client.get("/api/disruptions", params={"date": "2026-01-03", "limit": 5}).json()
+    assert first == second
+    assert len(first) == 5
+
+
 def test_an_unknown_flight_is_a_404_naming_the_id(client: TestClient) -> None:
     response = client.get("/api/flights/not-a-flight")
     assert response.status_code == 404

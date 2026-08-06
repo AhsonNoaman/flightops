@@ -156,14 +156,20 @@ class EvalReport(BaseModel):
 # -- process-wide state ---------------------------------------------------------------------------
 
 
-@dataclass
+@dataclass(eq=False)
 class Services:
-    """Opened once at startup. The store is read-only, so sharing it across requests is safe."""
+    """Opened once at startup. The store is read-only, so sharing it across requests is safe.
+
+    `eq=False` keeps the default identity hash, which is what lets this be an lru_cache key: the
+    cache is scoped to one process's services, and is cleared when they are torn down.
+    """
 
     store: ObjectStore
     engine: PropagationEngine
     actions: Actions
     sessions: SessionStore
+    first_date: str
+    last_date: str
 
 
 _services: Services | None = None
@@ -184,15 +190,19 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     global _services
     store = ObjectStore(database_path())
     engine = PropagationEngine(build_turn_model(store))
+    first, last, _ = store.coverage()
     _services = Services(
         store=store,
         engine=engine,
         actions=Actions(engine),
         sessions=SessionStore(store),
+        first_date=first,
+        last_date=last,
     )
     try:
         yield
     finally:
+        _ranked.cache_clear()
         store.close()
         _services = None
 
@@ -219,12 +229,12 @@ app.add_middleware(
 
 @app.get("/api/health", response_model=Health)
 def health(state: ServicesDep) -> Health:
-    first, last, carriers = state.store.coverage()
+    _, _, carriers = state.store.coverage()
     return Health(
         status="ok",
         flight_count=state.store.flight_count(),
-        first_date=first,
-        last_date=last,
+        first_date=state.first_date,
+        last_date=state.last_date,
         carriers=carriers,
         live_answers=live_answers_enabled(),
         active_sessions=len(state.sessions),
@@ -237,8 +247,27 @@ def disruptions(
     date: str = Query(description="Flight date, YYYY-MM-DD."),
     limit: int = Query(default=10, ge=1, le=25),
 ) -> list[DisruptionEvent]:
-    """The day's cascades, ranked by downstream minutes caused, one per aircraft."""
-    return rank_disruptions(state.store, state.engine, date, limit=limit)
+    """The day's cascades, ranked by downstream minutes caused, one per aircraft.
+
+    Cached, because this is the landing view and the answer cannot change: the underlying data
+    is immutable for the life of the process, so the first visitor of the day pays for the chain
+    walks and everyone after them does not. Bounded by `date` being validated against the loaded
+    window, which caps the number of distinct keys at the size of the ingested month.
+    """
+    if not (state.first_date <= date <= state.last_date):
+        raise HTTPException(
+            status_code=422,
+            detail=(
+                f"{date} is outside the loaded data, which covers {state.first_date} to "
+                f"{state.last_date}"
+            ),
+        )
+    return list(_ranked(state, date, limit))
+
+
+@lru_cache(maxsize=256)
+def _ranked(state: Services, date: str, limit: int) -> tuple[DisruptionEvent, ...]:
+    return tuple(rank_disruptions(state.store, state.engine, date, limit=limit))
 
 
 @app.get("/api/flights", response_model=list[Flight])
