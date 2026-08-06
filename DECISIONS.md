@@ -465,6 +465,45 @@ still the operator's problem, because it is five late flights instead of one.
 
 **Date.** 2026-08-05 (M4), from DESIGN.md §10.
 
+## D27 — Impossibilities reject; costly consequences are flagged in the diff
+
+**Decision.** Preconditions reject only what cannot happen: a flight already departed relative to
+the scenario clock, an already-cancelled leg, a replacement tail that does not exist, is another
+carrier's, or cannot physically reach the station in time. Everything expensive but real is
+returned as a warning on the diff.
+
+**Rejected.** Blocking swaps that strand a rotation or leave an aircraft out of position.
+
+**Why.** DESIGN.md §6 draws this line and it is the right one. Carriers strand rotations on bad
+days, deliberately, because the alternative is worse. A tool that refuses is a tool that gets
+worked around, and the workaround happens outside the system where nothing is recorded. Judging
+whether a cost is worth paying is the controller's job; making the cost visible before they
+commit is the tool's. So `cancel_flight` returns the stranded-rotation warning and applies
+anyway, and every swap carries the fleet-compatibility caveat it cannot check.
+
+**Date.** 2026-08-05 (M5), from DESIGN.md §6.
+
+## D28 — Recovery actions project zero additional delay, never the delay already applied
+
+**Decision.** `cancel_flight` and `swap_aircraft` project the scenario's current cascade by
+passing zero additional delay. The delay already applied is read only to populate the diff.
+
+**Rejected.** Measuring the leg's accumulated delay from the overlay and re-projecting with it,
+which is how this was first written.
+
+**Why.** A bug, caught by rendering a real diff rather than by the tests. The overlay already
+carries an applied delay inside the leg's own scheduled times, so passing that same delay back
+into the projection applied it twice. On UA1636's real cascade the swap reported clearing 1,447
+minutes of what is actually a 510-minute cascade -- nearly triple, and in the direction that
+overstates the value of the tool's own advice, which is the worst way for it to be wrong.
+
+The fix is one line in each action. The more useful outcome is the invariant it exposed: what a
+delay creates, an equivalent recovery removes. That symmetry is now two tests, including one for
+stacked delays where the double-counting compounded. Sixty-one tests passed while this bug was
+live, which is the honest reason the invariant is worth having.
+
+**Date.** 2026-08-05 (M5), from DESIGN.md §6, §7.
+
 ## Open, pending M1 discovery
 
 DESIGN.md §2 is a constructed persona, and the decisions above inherit its assumptions.
