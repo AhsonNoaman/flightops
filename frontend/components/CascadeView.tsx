@@ -302,17 +302,25 @@ function RecoveryPanel({ root, baseline }: { root: Flight; baseline: number }) {
 
       {diff && (
         <>
+          {/*
+            This figure is scoped, and the label says so. An earlier version of this panel led
+            with "Recovered 100%", which is not what the number measures: a swap clears the
+            cascade from *this* rotation, and the displaced aircraft's own line of flying is not
+            re-projected. A headline that large sitting above its own disclaimer is an
+            overclaim, so the scope is in the label and the caveats are attached to the number
+            rather than filed underneath the chart.
+          */}
           <div className="stats" style={{ marginTop: 14 }}>
             <div className="stat">
-              <span className="k">Net effect</span>
+              <span className="k">Cleared from this rotation</span>
               <span className={`v ${diff.net_minutes < 0 ? 'relief' : 'delay'}`}>
                 {signed(diff.net_minutes)}
                 <small>min</small>
               </span>
-              <span className="sub">against a {baseline}-minute cascade</span>
+              <span className="sub">of a {baseline}-minute cascade</span>
             </div>
             <div className="stat">
-              <span className="k">Recovered</span>
+              <span className="k">Of this aircraft&apos;s cascade</span>
               <span className="v relief">
                 {baseline > 0 && diff.net_minutes < 0
                   ? Math.round((-diff.net_minutes / baseline) * 100)
@@ -320,10 +328,21 @@ function RecoveryPanel({ root, baseline }: { root: Flight; baseline: number }) {
                 <small>%</small>
               </span>
               <span className="sub">
-                {diff.legs.length} leg{diff.legs.length === 1 ? '' : 's'} changed
+                {diff.legs.length} leg{diff.legs.length === 1 ? '' : 's'} on this line of flying
               </span>
             </div>
           </div>
+
+          {diff.warnings.length > 0 && (
+            <div className="caveat">
+              <h3>What this figure does not include</h3>
+              <ul>
+                {diff.warnings.map((warning) => (
+                  <li key={warning}>{warning}</li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           <div className="chart-head">
             <div className="legend">
@@ -367,12 +386,6 @@ function RecoveryPanel({ root, baseline }: { root: Flight; baseline: number }) {
           <p className="caption" style={{ marginTop: 10 }}>
             {diff.summary}
           </p>
-
-          {diff.warnings.map((warning) => (
-            <div className="note" key={warning}>
-              {warning}
-            </div>
-          ))}
         </>
       )}
     </div>

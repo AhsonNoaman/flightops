@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ApiError, DisruptionEvent, Health, api } from '@/lib/api';
 import { DisruptionList } from '@/components/DisruptionList';
 import { CascadeView } from '@/components/CascadeView';
@@ -13,6 +13,10 @@ import { QuestionPanel } from '@/components/QuestionPanel';
  * DESIGN.md claims the missing thing is knowing which delay is worth acting on, so the ranked
  * list is the landing view and a single cascade is what you get by clicking one -- not the other
  * way round, which would make this a flight search box with a chart attached.
+ *
+ * The selected day and cascade live in the query string. A tool whose findings cannot be sent to
+ * someone else is a tool for one person: "look at this cascade" has to be a link, not a sequence
+ * of clicks to reproduce.
  */
 export default function Page() {
   const [health, setHealth] = useState<Health | null>(null);
@@ -22,7 +26,16 @@ export default function Page() {
   const [events, setEvents] = useState<DisruptionEvent[] | null>(null);
   const [selected, setSelected] = useState<DisruptionEvent | null>(null);
 
+  // What the incoming URL asked for. Read once on mount -- `window` does not exist while the
+  // static export is being prerendered -- and consumed at most once, so that a later click is
+  // never overridden by the link the visitor happened to arrive on.
+  const requested = useRef<{ date: string | null; root: string | null }>({ date: null, root: null });
+  const consumedRoot = useRef(false);
+
   useEffect(() => {
+    const query = new URLSearchParams(window.location.search);
+    requested.current = { date: query.get('date'), root: query.get('root') };
+
     // Free container hosting sleeps when idle, so the first visitor after a quiet spell waits
     // out a cold start. Retrying quietly for a minute is the difference between "this project
     // is dead" and "this took a moment" -- and a portfolio link is mostly read cold.
@@ -37,9 +50,15 @@ export default function Page() {
           setHealth(body);
           setWaking(false);
           setFailure(null);
-          // The worst day in the committed sample. Landing on an empty day would make a working
-          // deployment look broken, so the default is chosen from the data, not hardcoded.
-          setDate(body.last_date >= '2026-01-03' ? '2026-01-03' : body.first_date);
+          // A day from the URL wins, but only if the deployment actually holds it -- a stale
+          // link should land on a working screen rather than an empty one. Otherwise the worst
+          // day in the committed sample, chosen from the data rather than hardcoded, because
+          // landing on a quiet day would make a working deployment look broken.
+          const asked = requested.current.date;
+          const holds = asked !== null && asked >= body.first_date && asked <= body.last_date;
+          setDate(
+            holds ? asked : body.last_date >= '2026-01-03' ? '2026-01-03' : body.first_date,
+          );
           return;
         } catch (error) {
           attempt += 1;
@@ -69,10 +88,21 @@ export default function Page() {
       .disruptions(date)
       .then((body) => {
         setEvents(body);
-        setSelected(body[0] ?? null);
+        const wanted = consumedRoot.current ? null : requested.current.root;
+        consumedRoot.current = true;
+        setSelected(body.find((event) => event.root_flight_id === wanted) ?? body[0] ?? null);
       })
       .catch((error: ApiError) => setFailure(error.message));
   }, [date]);
+
+  // replaceState rather than pushState: paging down a ranked list should not fill the back
+  // button with twelve entries, but the address bar should always describe what is on screen.
+  useEffect(() => {
+    if (!date) return;
+    const query = new URLSearchParams({ date });
+    if (selected) query.set('root', selected.root_flight_id);
+    window.history.replaceState(null, '', `${window.location.pathname}?${query}`);
+  }, [date, selected]);
 
   return (
     <>

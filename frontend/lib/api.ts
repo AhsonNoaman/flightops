@@ -223,7 +223,9 @@ export function label(flightId: string): string {
 }
 
 export function signed(minutes: number): string {
-  return minutes > 0 ? `+${minutes}` : `${minutes}`;
+  // U+2212, not a hyphen: in a column of tabular figures a hyphen is visibly too short and sits
+  // at the wrong height, which is exactly where it is most obvious.
+  return minutes > 0 ? `+${minutes}` : minutes < 0 ? `−${Math.abs(minutes)}` : '0';
 }
 
 export function hhmm(iso: string): string {

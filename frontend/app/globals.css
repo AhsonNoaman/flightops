@@ -805,6 +805,38 @@ tr.root td {
   margin: 10px 0;
 }
 
+/* Caveats belong next to the number they qualify, not underneath the chart. A figure that needs
+   a disclaimer and gets one four scrolls away has effectively not been qualified at all. */
+.caveat {
+  border: 1px solid var(--line);
+  border-top: 0;
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  background: var(--surface-1);
+  padding: 10px 14px 12px;
+  margin: -18px 0 16px;
+}
+
+.caveat h3 {
+  font-size: 10.5px;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--ink-3);
+  margin: 0 0 5px;
+}
+
+.caveat ul {
+  margin: 0;
+  padding-left: 16px;
+  color: var(--ink-2);
+  font-size: 11.5px;
+  line-height: 1.6;
+}
+
+.caveat li::marker {
+  color: var(--ink-3);
+}
+
 details {
   border-bottom: 1px solid var(--line-soft);
   padding: 6px 0;

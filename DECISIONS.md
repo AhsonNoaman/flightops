@@ -779,6 +779,47 @@ shading them by size would encode the same fact twice and spend a channel on not
 
 **Date.** 2026-08-07 (M7).
 
+## D44 — The recovery figure is scoped in its own label
+
+**Decision.** The recovery panel reads "Cleared from this rotation: −565 min" and "Of this
+aircraft's cascade: 100%", and the action's warnings sit in a bordered block attached directly
+underneath, headed "What this figure does not include".
+
+**Rejected.** "Recovered: 100%", which is what shipped first, with the warnings rendered as loose
+notes below the chart.
+
+**Why.** A swap does not recover 565 minutes from the operation. It moves them: the displaced
+aircraft picks up the original's line of flying, and this diff does not re-project that. The
+engine was always honest about it -- `available_tails` and the warnings say so in words -- but a
+48-pixel "100%" above a caveat four scrolls away is not a qualified claim, it is an unqualified
+one with a footnote. Naming the scope inside the label costs nothing and removes the only number
+on this screen that a domain expert could have called out as overstated.
+
+The general rule this is an instance of: when a figure needs a disclaimer, the disclaimer belongs
+in the label or adjacent to the value, never below the fold. If that makes the headline less
+impressive, the headline was measuring something other than what it claimed.
+
+**Date.** 2026-08-07 (M7).
+
+## D45 — The selected day and cascade live in the URL
+
+**Decision.** `?date=…&root=…` is written with `replaceState` on every selection, read once on
+mount, and ignored if the deployment does not hold the day asked for.
+
+**Rejected.** Component state only; `pushState` per selection.
+
+**Why.** A finding that cannot be sent to someone else is a finding for one person. "Look at the
+WN3665 cascade on the third" should be a link, not a sequence of clicks to reproduce -- and for a
+tool whose entire argument is that a specific delay is worth acting on, being unable to point at
+one is a functional gap rather than a nicety. `replaceState` because paging down a ranked list
+should not fill the back button with twelve entries.
+
+A stale link degrades rather than breaks: a day outside the loaded window falls back to the
+default day and still renders, because a link that outlives the data it referenced should land on
+a working screen.
+
+**Date.** 2026-08-07 (M7).
+
 ## Deployed
 
 The frontend is a static export on Vercel; the API is the repository's Docker image on Render,
