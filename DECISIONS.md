@@ -703,6 +703,31 @@ container. It is now a declared dependency.
 
 **Date.** 2026-08-06 (M7), from BRIEF M7, DESIGN.md §7.
 
+## D41 — `vercel.json` declares the framework and nothing the framework already knows
+
+**Decision.** `frontend/vercel.json` sets `framework: "nextjs"` and the two security headers, and
+does not set `buildCommand` or `outputDirectory`.
+
+**Rejected.** Pinning `outputDirectory: "out"` to match `output: 'export'`, which reads as the
+careful thing to do and is the reason the first deploy failed.
+
+**Why.** With the Next.js preset, Vercel reads `next.config.mjs`, sees the static export, and
+finds the output itself. Setting the directory by hand does not confirm that detection, it
+replaces it -- and it replaces it with a half-truth. A static export writes the site to `out/`
+but leaves `routes-manifest.json` in `.next/`, so Vercel's post-build step looked for the
+manifest under `out/` and failed with a missing-file error *after* a build that had already
+compiled, typechecked and rendered all three pages successfully.
+
+The failure is worth recording because of where it landed. Everything a build log usually tells
+you had gone right; the break was in the handoff afterwards, and the error named a file nobody
+had written a line about. Configuration that duplicates what a tool already derives is not
+redundant, it is a second source of truth that only speaks up when it disagrees.
+
+`headers` stays because a static export genuinely cannot express it: `headers` in
+`next.config.mjs` is ignored under `output: 'export'`, since there is no server to send them.
+
+**Date.** 2026-08-07 (M7), from the first Vercel deploy.
+
 ## Open, pending deployment
 
 The API image builds and serves; the frontend builds, renders and drives the whole flow against
