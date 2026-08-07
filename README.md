@@ -7,6 +7,13 @@ Performance data. Five objects, typed links between them, three actions that ret
 instead of mutating anything, and a question-answering layer that can only reach the data through
 those same objects.
 
+**[Live](https://flightops-ahsonnoamans-projects.vercel.app)** ·
+[API](https://flightops-api.onrender.com/api/health)
+
+The API runs on a free tier that sleeps when idle, so a first visit after a quiet spell waits out
+a cold start of up to a minute. The page says so while it retries, and says so plainly if the API
+never answers: the repository, the container image and the recorded eval do not depend on it.
+
 ![The cascade view](docs/screenshots/cascade.png)
 
 ---
@@ -233,13 +240,13 @@ is testing. [`docs/DEPLOY.md`](docs/DEPLOY.md) — how it ships, and what delibe
 ## Status
 
 Ingestion, the object model, propagation, actions, the question-answering layer, the API and the
-frontend are built and tested. Three things are outstanding and none of them are hidden:
+frontend are built, tested and deployed. Two things are outstanding and neither is hidden:
 
 - **Discovery.** Three conversations, not yet held. Until then the persona is constructed and
   labelled as such, and `DECISIONS.md` names the decisions those conversations could reverse.
-- **The eval score.** Everything except the run itself; it needs an API key.
-- **A public URL.** The image builds and the frontend renders against it; nothing is deployed
-  yet.
+- **The eval score.** The ten questions, the hand-verified answers, the graders, both agents and
+  the replay harness are all committed. The run is not: it needs an API key, so the panel reads
+  `not run` rather than a number nobody produced.
 
 ## Data
 

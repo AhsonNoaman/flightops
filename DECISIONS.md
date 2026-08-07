@@ -779,11 +779,18 @@ shading them by size would encode the same fact twice and spend a channel on not
 
 **Date.** 2026-08-07 (M7).
 
-## Open, pending deployment
+## Deployed
 
-The API image builds and serves; the frontend builds, renders and drives the whole flow against
-it. Neither is deployed: `gh` is not authenticated in this environment and the Vercel CLI is not
-installed, so no public URL exists yet. `docs/DEPLOY.md` has the exact commands.
+The frontend is a static export on Vercel; the API is the repository's Docker image on Render,
+built from `render.yaml` in this repo rather than from a dashboard form. Both deploy on push.
+
+- https://flightops-ahsonnoamans-projects.vercel.app
+- https://flightops-api.onrender.com/api/health
+
+Two things the deploy taught, both recorded above: `outputDirectory` in `vercel.json` overrode
+correct framework detection with a wrong answer and broke the first build after it had already
+succeeded (D41), and the container build is what caught the missing `pytz` dependency that the
+development virtualenv had been hiding (D40).
 
 ## Open, pending the live eval run
 
