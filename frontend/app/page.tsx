@@ -1,12 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import {
-  ApiError,
-  DisruptionEvent,
-  Health,
-  api,
-} from '@/lib/api';
+import { ApiError, DisruptionEvent, Health, api } from '@/lib/api';
 import { DisruptionList } from '@/components/DisruptionList';
 import { CascadeView } from '@/components/CascadeView';
 import { QuestionPanel } from '@/components/QuestionPanel';
@@ -83,16 +78,18 @@ export default function Page() {
     <>
       <header className="masthead">
         <h1>flightops</h1>
+        <span className="rule" />
         <span className="meta">rotation cascades over BTS On-Time Performance</span>
         <span className="spacer" />
         {health && (
           <span className="meta">
             {health.carriers.join(', ')} · {health.first_date} to {health.last_date} ·{' '}
-            {health.flight_count.toLocaleString()} flights
+            <span className="mono">{health.flight_count.toLocaleString()}</span> flights
           </span>
         )}
-        <label className="meta">
-          day{' '}
+        <span className="rule" />
+        <label>
+          day
           <input
             type="date"
             value={date}
@@ -104,13 +101,13 @@ export default function Page() {
       </header>
 
       {waking && (
-        <div className="note" style={{ margin: 12 }}>
+        <div className="note" style={{ margin: '12px 18px' }}>
           Waking the API. It sleeps when nobody is using it, so a first visit after a quiet spell
           takes up to a minute.
         </div>
       )}
       {failure && (
-        <div className="error" style={{ margin: 12 }}>
+        <div className="error" style={{ margin: '12px 18px' }}>
           {failure} The API is hosted separately from this page and may be down; the repository,
           the container image and the recorded eval do not depend on it.
         </div>
@@ -118,21 +115,27 @@ export default function Page() {
 
       <div className="grid">
         <section className="pane">
-          <h2>Disruptions</h2>
-          <p className="caption">
-            Ranked by minutes forced onto downstream legs, one per aircraft. Legs whose delay BTS
-            attributes mostly to a late inbound aircraft are consequences, not roots, and are
-            excluded.
-          </p>
+          <div className="pane-head">
+            <h2>Disruptions</h2>
+            <p className="caption">
+              Ranked by minutes forced onto downstream legs, one per aircraft. Legs whose delay BTS
+              attributes mostly to a late inbound aircraft are consequences, not roots, and are
+              excluded.
+            </p>
+          </div>
           <DisruptionList events={events} selected={selected} onSelect={setSelected} />
         </section>
 
         <section className="pane">
-          <h2>Cascade</h2>
           {selected ? (
             <CascadeView event={selected} />
           ) : (
-            <p className="caption">Select a disruption.</p>
+            <>
+              <div className="pane-head">
+                <h2>Cascade</h2>
+              </div>
+              <p className="caption">Select a disruption.</p>
+            </>
           )}
         </section>
 

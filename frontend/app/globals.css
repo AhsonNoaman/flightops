@@ -1,25 +1,54 @@
 /*
  * Dense by intent, not by accident.
  *
- * The reference for this screen is an ops-control display, not a dashboard: someone scanning it
- * is looking for one number in a list of forty, so rows are tight, numbers are tabular-figure
- * monospace so digits line up down a column, and colour carries exactly one meaning -- amber for
- * delay, green for recovered, grey for absorbed. Nothing animates. Nothing is centred.
+ * The reference for this screen is an ops-control display, not a marketing dashboard: someone
+ * scanning it is looking for one number among forty. So the rules are:
+ *
+ *   Hue is reserved for data.   Chrome is greyscale; selection is a surface change and a rule,
+ *                               never a colour. Nothing in the interface competes with a mark.
+ *   Two data colours, opposed.  Orange means minutes added, blue means minutes removed. They are
+ *                               a validated diverging pair -- see the palette note below.
+ *   Numbers align.              Columns of figures are tabular monospace so digits stack; prose
+ *                               and labels are sans, because a whole screen of monospace reads as
+ *                               a terminal emulator rather than an instrument.
+ *   Nothing animates.           Except a 120ms hover, which is feedback, not decoration.
+ *
+ * The palette was validated, not chosen by eye. The earlier version of this file used green for
+ * "recovered" and red for "worse", which is the single most common accessibility failure in
+ * dashboards: those two measure a colour difference of 4.1 under deuteranopia, where 8 is the
+ * floor -- a red/green viewer cannot tell a recovery from a regression. Blue and orange measure
+ * 26.8 under the same simulation and 31.8 under normal vision, and they carry the right
+ * connotation anyway: warm for a delay you have gained, cool for one you have given back.
  */
 
 :root {
-  --bg: #0d1014;
-  --panel: #151a21;
-  --panel-2: #1b222b;
-  --line: #262f3b;
-  --text: #dfe6ee;
-  --dim: #8b97a6;
-  --faint: #5e6a79;
-  --delay: #f0a04b;
-  --bad: #e4635a;
-  --good: #4fb477;
-  --accent: #6ba7e8;
+  /* -- surfaces: four cool near-black planes, each one step off the last ---------------- */
+  --plane: #0a0d11;
+  --surface-1: #10151b;
+  --surface-2: #161d25;
+  --surface-3: #1e2833;
+  --line: #212a35;
+  --line-soft: #1a222c;
+
+  /* -- ink ------------------------------------------------------------------------------ */
+  --ink: #e9eef4;
+  --ink-2: #97a4b4;
+  --ink-3: #66717f;
+
+  /* -- data: a diverging pair with a neutral midpoint ----------------------------------- */
+  --delay: #d95926;
+  --relief: #3987e5;
+  --plan: #46525f;
+  --delay-wash: rgba(217, 89, 38, 0.16);
+  --relief-wash: rgba(57, 135, 229, 0.16);
+  --plan-wash: rgba(112, 128, 145, 0.14);
+
+  --sans:
+    system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   --mono: ui-monospace, 'SF Mono', 'Cascadia Mono', Menlo, Consolas, monospace;
+
+  --radius: 4px;
+  --radius-lg: 6px;
 }
 
 * {
@@ -30,68 +59,110 @@ html,
 body {
   margin: 0;
   padding: 0;
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--mono);
+  background: var(--plane);
+  color: var(--ink);
+  font-family: var(--sans);
   font-size: 13px;
-  line-height: 1.45;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: rgba(57, 135, 229, 0.28);
+}
+
+:focus-visible {
+  outline: 2px solid var(--relief);
+  outline-offset: 1px;
+}
+
+/* Figures align in columns and nowhere else: tabular-nums makes every digit as wide as a zero,
+   which is what a column needs and what a headline number does not. */
+.num,
+td.num,
+th.num,
+.mono {
+  font-family: var(--mono);
   font-variant-numeric: tabular-nums;
 }
 
 a {
-  color: var(--accent);
+  color: var(--relief);
 }
 
 button {
   font: inherit;
-  color: var(--text);
-  background: var(--panel-2);
+  font-size: 12px;
+  color: var(--ink);
+  background: var(--surface-3);
   border: 1px solid var(--line);
-  border-radius: 3px;
-  padding: 3px 9px;
+  border-radius: var(--radius);
+  padding: 5px 11px;
   cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
 }
 
 button:hover:not(:disabled) {
-  border-color: var(--accent);
+  background: #26323f;
+  border-color: #33404f;
 }
 
 button:disabled {
-  opacity: 0.4;
+  opacity: 0.35;
   cursor: default;
+}
+
+button.primary:not(:disabled) {
+  background: rgba(57, 135, 229, 0.16);
+  border-color: rgba(57, 135, 229, 0.45);
+}
+
+button.primary:hover:not(:disabled) {
+  background: rgba(57, 135, 229, 0.26);
 }
 
 input,
 select {
   font: inherit;
-  color: var(--text);
-  background: var(--bg);
+  font-size: 12px;
+  color: var(--ink);
+  background: var(--plane);
   border: 1px solid var(--line);
-  border-radius: 3px;
-  padding: 3px 6px;
+  border-radius: var(--radius);
+  padding: 5px 8px;
 }
 
-/* -- shell ------------------------------------------------------------------------------- */
+input::placeholder {
+  color: var(--ink-3);
+}
+
+/* -- shell -------------------------------------------------------------------------------- */
 
 .masthead {
   display: flex;
-  align-items: baseline;
-  gap: 16px;
+  align-items: center;
+  gap: 14px;
   flex-wrap: wrap;
-  padding: 10px 16px;
+  padding: 12px 18px;
   border-bottom: 1px solid var(--line);
-  background: var(--panel);
+  background: var(--surface-1);
 }
 
 .masthead h1 {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 650;
   margin: 0;
-  letter-spacing: 0.02em;
+  letter-spacing: -0.01em;
+}
+
+.masthead .rule {
+  width: 1px;
+  height: 18px;
+  background: var(--line);
 }
 
 .masthead .meta {
-  color: var(--dim);
+  color: var(--ink-2);
   font-size: 12px;
 }
 
@@ -99,78 +170,548 @@ select {
   flex: 1;
 }
 
-.grid {
-  display: grid;
-  grid-template-columns: 340px minmax(0, 1fr) 380px;
-  gap: 1px;
-  background: var(--line);
-  min-height: calc(100vh - 43px);
+.masthead label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--ink-3);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
 }
 
-@media (max-width: 1200px) {
+.grid {
+  display: grid;
+  grid-template-columns: 336px minmax(0, 1fr) 372px;
+  gap: 1px;
+  background: var(--line);
+  min-height: calc(100vh - 49px);
+}
+
+@media (max-width: 1280px) {
   .grid {
     grid-template-columns: 1fr;
   }
 }
 
 .pane {
-  background: var(--bg);
-  padding: 12px 14px;
+  background: var(--plane);
+  padding: 16px 18px 24px;
   min-width: 0;
   overflow: auto;
 }
 
-.pane h2 {
+.pane-head {
+  margin-bottom: 12px;
+}
+
+h2 {
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 650;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--dim);
-  margin: 0 0 4px;
+  letter-spacing: 0.09em;
+  color: var(--ink-2);
+  margin: 0 0 5px;
 }
 
-.pane .caption {
-  color: var(--faint);
-  font-size: 11px;
-  margin: 0 0 10px;
+.caption {
+  color: var(--ink-3);
+  font-size: 11.5px;
+  line-height: 1.55;
+  margin: 0 0 12px;
+  max-width: 62ch;
 }
 
-/* -- lists and tables -------------------------------------------------------------------- */
+.section {
+  border-top: 1px solid var(--line);
+  margin-top: 22px;
+  padding-top: 16px;
+}
 
-.row {
-  display: block;
+/* -- ranked list -------------------------------------------------------------------------- */
+
+.rank-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.rank {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  gap: 9px;
   width: 100%;
   text-align: left;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 3px;
-  padding: 6px 8px;
-  margin-bottom: 4px;
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  border-left: 2px solid transparent;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 8px 9px 8px 7px;
   cursor: pointer;
+  transition: background 120ms ease;
 }
 
-.row:hover {
-  border-color: var(--faint);
+.rank:hover {
+  background: var(--surface-1);
 }
 
-.row.selected {
-  border-color: var(--accent);
-  background: var(--panel-2);
+/* Selection is a surface and a rule, not a hue -- hue belongs to the data. */
+.rank.on {
+  background: var(--surface-2);
+  border-left-color: var(--ink);
 }
 
-.row .top {
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.row .sub {
-  color: var(--dim);
+.rank .ord {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
   font-size: 11px;
+  color: var(--ink-3);
+  padding-top: 1px;
+}
+
+.rank.on .ord {
+  color: var(--ink-2);
+}
+
+/* The row's contents are spans (a button may not contain a div), so every one of them that needs
+   to stack has to be told to stop being inline. */
+.rank .body {
+  display: block;
+  min-width: 0;
+}
+
+.rank .ident {
   display: flex;
+  align-items: baseline;
   justify-content: space-between;
   gap: 8px;
 }
+
+.rank .ident strong {
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+
+.rank .ident .val {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+/* Magnitude as length, one colour for every bar. Colouring each bar darker-where-bigger would
+   encode the same fact twice and burn the only channel left. */
+.magnitude {
+  display: block;
+  height: 4px;
+  background: var(--surface-3);
+  border-radius: 2px;
+  margin: 6px 0 5px;
+  overflow: hidden;
+}
+
+.magnitude > i {
+  display: block;
+  height: 4px;
+  background: var(--delay);
+  border-radius: 0 2px 2px 0;
+}
+
+.rank .foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--ink-3);
+  font-size: 11px;
+}
+
+/* -- stat tiles --------------------------------------------------------------------------- */
+
+.stats {
+  display: flex;
+  align-items: stretch;
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: 18px;
+}
+
+.stat {
+  flex: 1;
+  min-width: 0;
+  background: var(--surface-1);
+  padding: 11px 14px 12px;
+}
+
+.stat .k {
+  display: block;
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--ink-3);
+  margin-bottom: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Proportional figures, not tabular: at display sizes equal-width digits look loose. */
+.stat .v {
+  font-size: 21px;
+  font-weight: 620;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.stat .v small {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--ink-3);
+  letter-spacing: 0;
+  margin-left: 3px;
+}
+
+/* Exactly one of these per view. */
+.stat.hero {
+  flex: 1.35;
+  background: var(--surface-2);
+}
+
+.stat.hero .v {
+  font-size: 48px;
+  font-weight: 660;
+  letter-spacing: -0.035em;
+  line-height: 1.02;
+  color: var(--delay);
+}
+
+.stat.hero .v small {
+  font-size: 13px;
+}
+
+.stat .sub {
+  display: block;
+  font-size: 11px;
+  color: var(--ink-3);
+  margin-top: 2px;
+}
+
+/* -- timeline ----------------------------------------------------------------------------- */
+
+.chart-head {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 9px;
+}
+
+.legend {
+  display: flex;
+  gap: 13px;
+  font-size: 11px;
+  color: var(--ink-2);
+}
+
+.legend span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.legend i {
+  width: 11px;
+  height: 4px;
+  border-radius: 2px;
+  flex: none;
+}
+
+.legend i.plan {
+  background: var(--plan);
+}
+.legend i.actual {
+  background: var(--delay);
+}
+.legend i.absorbed {
+  background: var(--relief);
+}
+
+.timeline {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface-1);
+  padding: 12px 0 0;
+}
+
+.tl-row {
+  display: grid;
+  grid-template-columns: 148px minmax(0, 1fr) 52px 52px;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  min-height: 34px;
+  position: relative;
+}
+
+.tl-row:hover,
+.tl-row:focus-visible {
+  background: var(--surface-2);
+  outline: none;
+}
+
+.tl-name {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 11.5px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.tl-name b {
+  font-weight: 600;
+}
+
+.tl-name em {
+  font-style: normal;
+  color: var(--ink-3);
+  font-family: var(--mono);
+  font-size: 11px;
+}
+
+.tl-row.is-root .tl-name b {
+  color: var(--ink);
+}
+
+.tl-row.is-root::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 3px;
+  bottom: 3px;
+  width: 2px;
+  background: var(--ink-2);
+}
+
+.tl-track {
+  position: relative;
+  height: 16px;
+}
+
+/* Two lanes, 2px of surface between them: the plan on top, what actually happens below. The
+   horizontal distance between their left edges is the delay, which is the whole chart. */
+.tl-bar {
+  position: absolute;
+  height: 6px;
+  border-radius: 1px 3px 3px 1px;
+  min-width: 2px;
+}
+
+.tl-bar.plan {
+  top: 1px;
+  background: var(--plan);
+}
+
+.tl-bar.actual {
+  top: 9px;
+  background: var(--delay);
+}
+
+.tl-bar.actual.ontime {
+  background: transparent;
+  border: 1px solid var(--plan);
+  opacity: 0.7;
+}
+
+/* The shift itself, drawn as a hairline from where the leg should have left to where it did. */
+.tl-shift {
+  position: absolute;
+  top: 11px;
+  height: 1px;
+  background: var(--delay);
+  opacity: 0.55;
+}
+
+.tl-absorb {
+  position: absolute;
+  top: 9px;
+  height: 6px;
+  background: var(--relief);
+  border-radius: 1px;
+}
+
+.tl-num {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 11.5px;
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* The axis reuses the row's column template so its ticks land on the gridlines. Anything else
+   drifts as soon as the label column changes width. */
+.tl-axis,
+.tl-grid {
+  display: grid;
+  grid-template-columns: 148px minmax(0, 1fr) 52px 52px;
+  gap: 10px;
+  padding: 0 14px;
+}
+
+.tl-axis {
+  margin-top: 4px;
+  border-top: 1px solid var(--line);
+}
+
+.tl-axis .lane {
+  position: relative;
+  height: 21px;
+}
+
+.tl-axis .tick {
+  position: absolute;
+  top: 5px;
+  transform: translateX(-50%);
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 10px;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+
+/* Gridlines: solid hairlines one step off the surface, behind everything. Never dashed. One
+   overlay across the whole body rather than a set per row, which would read as a dashed line. */
+.tl-grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.tl-grid .lane {
+  position: relative;
+}
+
+.tl-grid i {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--line-soft);
+}
+
+.tl-body {
+  position: relative;
+}
+
+.tl-tip {
+  position: absolute;
+  left: 158px;
+  bottom: calc(100% - 4px);
+  z-index: 5;
+  display: none;
+  background: var(--surface-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 7px 10px;
+  font-size: 11.5px;
+  line-height: 1.6;
+  white-space: nowrap;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
+}
+
+.tl-row:hover .tl-tip,
+.tl-row:focus-visible .tl-tip {
+  display: block;
+}
+
+.tl-tip dt {
+  display: inline;
+  color: var(--ink-3);
+}
+
+.tl-tip dd {
+  display: inline;
+  margin: 0 0 0 5px;
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.tl-tip div + div {
+  margin-top: 1px;
+}
+
+/* -- dumbbell ----------------------------------------------------------------------------- */
+
+.db-row {
+  display: grid;
+  grid-template-columns: 156px minmax(0, 1fr) 90px;
+  align-items: center;
+  gap: 10px;
+  min-height: 28px;
+}
+
+/* A refetch holds the previous render at reduced opacity rather than collapsing to a skeleton:
+   the layout does not jump, and the numbers you were reading stay on screen while the next set
+   arrives. */
+.is-stale {
+  opacity: 0.4;
+  transition: opacity 120ms ease;
+}
+
+.db-track {
+  position: relative;
+  height: 18px;
+}
+
+.db-line {
+  position: absolute;
+  top: 8px;
+  height: 2px;
+  background: var(--plan);
+  border-radius: 1px;
+}
+
+/* 8px dots with a 2px ring in the surface colour, so they stay readable where they overlap. */
+.db-dot {
+  position: absolute;
+  top: 5px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  transform: translateX(-4px);
+  box-shadow: 0 0 0 2px var(--plane);
+}
+
+.db-dot.before {
+  background: var(--delay);
+}
+.db-dot.after {
+  background: var(--relief);
+}
+
+.db-name {
+  font-size: 11.5px;
+  color: var(--ink-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.db-val {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 11.5px;
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* -- tables ------------------------------------------------------------------------------- */
 
 table {
   width: 100%;
@@ -181,17 +722,17 @@ table {
 th {
   text-align: left;
   font-weight: 500;
-  color: var(--faint);
+  color: var(--ink-3);
   font-size: 10px;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.07em;
   border-bottom: 1px solid var(--line);
-  padding: 4px 6px;
+  padding: 5px 8px;
 }
 
 td {
-  padding: 4px 6px;
-  border-bottom: 1px solid var(--line);
+  padding: 5px 8px;
+  border-bottom: 1px solid var(--line-soft);
   white-space: nowrap;
 }
 
@@ -201,79 +742,116 @@ th.num {
 }
 
 tr.root td {
-  background: var(--panel-2);
+  background: var(--surface-1);
 }
 
-/* -- semantics --------------------------------------------------------------------------- */
+/* -- semantics ---------------------------------------------------------------------------- */
 
 .delay {
   color: var(--delay);
 }
-.bad {
-  color: var(--bad);
-}
-.good {
-  color: var(--good);
+.relief {
+  color: var(--relief);
 }
 .dim {
-  color: var(--dim);
+  color: var(--ink-2);
 }
 .faint {
-  color: var(--faint);
+  color: var(--ink-3);
 }
+
 .id {
-  color: var(--faint);
+  color: var(--ink-3);
+  font-family: var(--mono);
   font-size: 10.5px;
   word-break: break-all;
+  margin: 0 0 12px;
 }
 
 .tag {
   display: inline-block;
+  background: var(--surface-2);
   border: 1px solid var(--line);
-  border-radius: 2px;
-  padding: 0 4px;
-  font-size: 10px;
-  color: var(--dim);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  border-radius: 3px;
+  padding: 1px 6px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--ink-2);
+  letter-spacing: 0.02em;
 }
 
-.note {
-  border-left: 2px solid var(--delay);
-  padding: 4px 0 4px 8px;
-  margin: 6px 0;
-  color: var(--dim);
+.note,
+.error {
+  border-left: 2px solid var(--plan);
+  background: var(--surface-1);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 7px 11px;
+  margin: 10px 0;
+  color: var(--ink-2);
   font-size: 11.5px;
+  line-height: 1.55;
 }
 
 .error {
-  border-left: 2px solid var(--bad);
-  padding: 4px 0 4px 8px;
-  margin: 6px 0;
-  color: var(--bad);
-  font-size: 11.5px;
+  border-left-color: var(--delay);
+  color: var(--ink);
 }
 
 .controls {
   display: flex;
-  gap: 6px;
+  gap: 8px;
   align-items: center;
   flex-wrap: wrap;
-  margin: 8px 0;
+  margin: 10px 0;
 }
 
-.section {
-  border-top: 1px solid var(--line);
-  margin-top: 14px;
-  padding-top: 10px;
+details {
+  border-bottom: 1px solid var(--line-soft);
+  padding: 6px 0;
 }
 
 details summary {
   cursor: pointer;
-  color: var(--dim);
+  color: var(--ink-2);
   font-size: 11.5px;
+  list-style: none;
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+}
+
+details summary::-webkit-details-marker {
+  display: none;
+}
+
+details summary::before {
+  content: '+';
+  font-family: var(--mono);
+  color: var(--ink-3);
+  flex: none;
+}
+
+details[open] summary::before {
+  content: '\2212';
+}
+
+details summary:hover {
+  color: var(--ink);
 }
 
 details[open] summary {
-  margin-bottom: 6px;
+  margin-bottom: 7px;
+  color: var(--ink);
+}
+
+.mark {
+  font-family: var(--mono);
+  font-size: 11px;
+  flex: none;
+}
+
+.skeleton {
+  color: var(--ink-3);
+  font-size: 11.5px;
+  padding: 10px 0;
 }

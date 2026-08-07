@@ -728,6 +728,57 @@ redundant, it is a second source of truth that only speaks up when it disagrees.
 
 **Date.** 2026-08-07 (M7), from the first Vercel deploy.
 
+## D42 — Two data colours, chosen by a validator rather than by eye
+
+**Decision.** The interface reserves hue for data and spends it on exactly two: orange for minutes
+added, blue for minutes given back. Everything else -- selection, hover, focus, panel chrome -- is
+greyscale. Selection is a surface change and a 2px rule, never a colour.
+
+**Rejected.** Green for "recovered" and red for "worse", which is what the first version used and
+what most dashboards use.
+
+**Why.** Green `#0ca30c` and red `#d03b3b` differ by 4.1 under simulated deuteranopia, against a
+floor of 8. A red-green viewer -- around one man in twelve -- could not tell a recovery from a
+regression in the one panel where that distinction is the entire output. Orange `#d95926` and blue
+`#3987e5` measure 26.8 under the same simulation and 31.8 under normal vision, and they carry the
+better metaphor anyway: warm for time you have taken on, cool for time you have handed back.
+
+The numbers above came from running the palette through a checker, not from looking at it. That
+is the point worth keeping: "these look different enough" is not a test, and the failing pair
+looked completely fine to me.
+
+Two consequences follow from reserving hue for data. Cancellation is a state, not a magnitude, so
+it is a struck-through row with a label rather than a third colour. And the interactive accent had
+to leave the palette, because a blue that means "selected" in the chrome and "recovered" in a
+chart is a colour with two meanings.
+
+**Date.** 2026-08-07 (M7).
+
+## D43 — The cascade is drawn, and the table stays
+
+**Decision.** The centre pane leads with a rotation timeline: two lanes per leg on a shared clock,
+the schedule above and the projection below, so the horizontal offset between them is the delay.
+The table that used to be the only view is kept underneath, collapsed, labelled as the same values
+as numbers.
+
+**Rejected.** The table alone (what shipped first); the timeline alone.
+
+**Why.** A cascade is a shape -- one aircraft's late morning walking through its afternoon -- and
+a column of projected timestamps makes the reader rebuild that shape in their head. Drawing it is
+not decoration; it is the difference between reading that WN65 departs at 01:37 and seeing that
+the aircraft never recovers before it overnights.
+
+The table stays for three reasons: it is the accessible equivalent of a chart that encodes with
+position and colour, it is where a sceptical reader checks a number they do not believe, and a
+chart whose values exist nowhere else is a chart you have to trust.
+
+Ranking rows in the left list got the same treatment for the same reason. Thirteen near-identical
+numerals do not communicate that the top cascade is three times the fifth, and that ratio is the
+whole argument for triaging by propagated minutes rather than by delay. One colour for every bar:
+shading them by size would encode the same fact twice and spend a channel on nothing.
+
+**Date.** 2026-08-07 (M7).
+
 ## Open, pending deployment
 
 The API image builds and serves; the frontend builds, renders and drives the whole flow against
