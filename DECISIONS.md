@@ -820,6 +820,44 @@ a working screen.
 
 **Date.** 2026-08-07 (M7).
 
+## D46 — Revises D1: the persona is grounded in published sources, not interviews
+
+**Decision.** No interviews will be held. D1's obligation of "at least three conversations" is
+withdrawn rather than left standing as an intention. In its place the persona is grounded in
+primary published documentation, cited in the README, and the limits of that grounding are stated
+in the same paragraph.
+
+**Rejected.** Leaving "three conversations are scheduled" in the README against conversations that
+were never scheduled. Deleting the caveat entirely and letting the persona read as researched.
+Holding one token conversation to make the sentence true.
+
+**Why.** An aspirational claim that quietly never resolves is worse than an admitted gap, and it
+is the kind of claim a reviewer checks. The honest replacement turned out to be stronger than the
+promise it replaced, in both directions:
+
+- Two of the sources **corroborate the mechanics**. The BTS on-time reporting directive specifies
+  late-aircraft attribution in terms of the previous flight's delay bounded by scheduled ground
+  time and allotted turn time -- which is `projected_dep = max(sched_dep, projected_arr +
+  min_turn)`, arrived at independently here. IATA AHM 730 codes rotation delay as **93 (RA)**
+  inside the *reactionary* block, and carries **09 (SG)** for ground time below declared minimum
+  turn. The root-versus-consequence exclusion and the absorption model are both industry
+  categories, not inventions of this repo.
+- The sources **do not corroborate the premise**, and say so loudly. Aircraft recovery has a
+  literature reaching back to Teodorović and Guberinić (1984), mature commercial tooling, and BTS
+  itself publishes a tool tracing original causes of late-arriving aircraft. The DESIGN.md §2
+  claim that an operations controller lacks this visibility is, on the published evidence,
+  probably false.
+
+Writing that second bullet down is the point of this entry. The project's defensible claim is
+narrower than the one it started with: a checkable implementation of a specified mechanic, and a
+measurement that contradicted its own premise. Not evidence of a need.
+
+D1's other obligations -- primary sources, a persona never presented as a customer -- stand and
+are discharged. The reversibility list under "What discovery could still reverse" stays as
+written, now describing work that is open rather than work that is scheduled.
+
+**Date.** 2026-08-07 (M1, closed as not-done).
+
 ## Deployed
 
 The frontend is a static export on Vercel; the API is the repository's Docker image on Render,
@@ -842,10 +880,12 @@ there is no n-out-of-10 for either agent. `scripts/run_eval.py --replay` reports
 transcript recorded" against every question, which is the correct reading of an eval that has not
 been run. Nothing in the README or the writeup should claim a score until it has.
 
-## Open, pending M1 discovery
+## What discovery could still reverse
 
-DESIGN.md §2 is a constructed persona, and the decisions above inherit its assumptions.
-`docs/interview-guide.md` is built to break them. What discovery could reverse:
+DESIGN.md §2 is a constructed persona and the decisions above inherit its assumptions. No
+interviews were held (see D46), so this list describes work that is open rather than work that
+is scheduled. `docs/interview-guide.md` holds the questions, written to break the assumptions
+rather than confirm them. What a real conversation could reverse:
 
 - **D1**, if an operator meeting all three conditions in §1 appears. The project becomes Variant A
   and DESIGN.md is rewritten around the real operation.

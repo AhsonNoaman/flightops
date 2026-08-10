@@ -152,8 +152,10 @@ export function CascadeView({ event }: { event: DisruptionEvent }) {
             <tr>
               <th>leg</th>
               <th>route</th>
-              <th className="num">sched dep utc</th>
-              <th className="num">projected utc</th>
+              <th className="num">sched dep</th>
+              <th className="num">sched arr</th>
+              <th className="num">proj dep</th>
+              <th className="num">proj arr</th>
               <th className="num">delay</th>
               <th className="num">absorbed</th>
             </tr>
@@ -163,6 +165,16 @@ export function CascadeView({ event }: { event: DisruptionEvent }) {
               const affected = byId.get(leg.flight_id);
               const isRoot = leg.flight_id === shown.root_flight_id;
               const untouched = !affected && !isRoot;
+              // The chart draws each bar from projected departure to projected arrival, so both
+              // ends have to appear here for the summary above to be true. A table that carries
+              // only the values the chart happens to print as text is not a table view of it.
+              const shift = isRoot ? shown.root_delay_minutes * 60000 : 0;
+              const projDep = affected
+                ? affected.projected_dep_utc
+                : new Date(Date.parse(leg.sched_dep_utc) + shift).toISOString();
+              const projArr = affected
+                ? affected.projected_arr_utc
+                : new Date(Date.parse(leg.sched_arr_utc) + shift).toISOString();
               return (
                 <tr key={leg.flight_id} className={isRoot ? 'root' : undefined}>
                   <td>
@@ -173,20 +185,12 @@ export function CascadeView({ event }: { event: DisruptionEvent }) {
                     {leg.origin}–{leg.destination}
                   </td>
                   <td className="num">{hhmm(leg.sched_dep_utc)}</td>
+                  <td className="num">{hhmm(leg.sched_arr_utc)}</td>
                   <td className="num">
-                    {affected ? (
-                      <span className="delay">{hhmm(affected.projected_dep_utc)}</span>
-                    ) : isRoot ? (
-                      <span className="delay">
-                        {hhmm(
-                          new Date(
-                            Date.parse(leg.sched_dep_utc) + shown.root_delay_minutes * 60000,
-                          ).toISOString(),
-                        )}
-                      </span>
-                    ) : (
-                      <span className="faint">on time</span>
-                    )}
+                    <span className={untouched ? 'faint' : 'delay'}>{hhmm(projDep)}</span>
+                  </td>
+                  <td className="num">
+                    <span className={untouched ? 'faint' : 'delay'}>{hhmm(projArr)}</span>
                   </td>
                   <td className="num">
                     {affected ? (

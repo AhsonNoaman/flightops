@@ -31,10 +31,61 @@ they force onto everything downstream, one per aircraft, and it excludes legs wh
 itself attributes to a late inbound aircraft — those are consequences, not causes.
 
 **One honest caveat, stated first.** The operations controller this is built for is a
-*constructed persona*, not a customer. Three real conversations are scheduled (the questions are
-in [docs/interview-guide.md](docs/interview-guide.md), written to falsify the assumptions above
-rather than confirm them). Until those happen, the claim that rotation-cascade visibility is the
-gap is a hypothesis I chose, and `DECISIONS.md` lists which decisions discovery could reverse.
+**constructed persona built from published sources, not from interviews.** I did not talk to an
+operations controller, and I am not going to claim otherwise. What the persona rests on instead
+is documented below, along with the specific thing that grounding does *not* establish.
+
+---
+
+## What the persona is grounded in, and what it is not
+
+Three published sources carry most of the weight, and two of them independently corroborate the
+mechanics this project implements.
+
+**The propagation rule is not mine.** BTS's own technical directive for on-time reporting
+specifies how a carrier must attribute delay to a late inbound aircraft: minutes assigned can
+never exceed the previous flight's delay, and the carrier must account for scheduled ground time
+and its allotted turn time. Their worked example is the absorption case exactly — a flight
+arriving 60 minutes late at 02:15 with a 20-minute turn and a 04:00 scheduled departure yields
+*no* attributable late-aircraft minutes, because the schedule buffer swallows it. That is
+`projected_dep = max(sched_dep, projected_arr + min_turn)`, written by the regulator before it
+was written here. ([Understanding the Reporting of Causes of Flight Delays and
+Cancellations](https://www.bts.gov/topics/airlines-and-airports/understanding-reporting-causes-flight-delays-and-cancellations),
+[Technical Directive
+#39](https://www.bts.gov/explore-topics-and-geography/modes/aviation/number-39-technical-directive-reporting-time))
+
+**The root-versus-consequence split is an industry category, not an invention.** IATA's AHM 730
+delay coding — the global standard since the 1980s — puts rotation delay at code **93 (RA),
+"aircraft rotation: late arrival of aircraft from another flight"**, inside the *reactionary* 9x
+block. Its code **09 (SG)** is "scheduled ground time less than declared minimum ground time",
+which is the `min_turn` concept as a reporting category. Excluding legs whose delay is mostly
+inherited, and treating minimum turn as the thing that decides absorption, is how the industry
+already codes it. ([IATA AHM 730 standard delay
+codes](https://ansperformance.eu/library/iata-delay-codes.pdf))
+
+**The recovery levers are the studied ones.** The aircraft recovery problem has a literature
+going back to Teodorović and Guberinić (1984), and its standard reactive levers are delay,
+cancel, swap, and ferry. This tool implements the first three and names the fourth as out of
+scope. ([Santana et al., *The aircraft recovery problem: a systematic literature
+review*](https://www.sciencedirect.com/science/article/pii/S2192437623000146); [Hassan, Santos &
+Vink, *Airline disruption management: a literature review and practical challenges*, Computers &
+Operations Research 127
+(2021)](https://www.sciencedirect.com/science/article/abs/pii/S0305054820300095))
+
+**What none of that establishes — and this is the part worth reading.** The sources validate the
+*mechanics*. They do not validate the *premise*. The claim in DESIGN.md §2 is that an operations
+controller lacks rotation-cascade visibility, and the evidence points the other way: aircraft
+recovery is a decades-old field with mature commercial tooling, and BTS itself publishes an
+["Aircraft Arriving Late: Causes of the Original
+Delay"](https://www.transtats.bts.gov/AircraftDelay/mainpage.aspx) tool that traces exactly this
+chain. A real IOC almost certainly has rotation projection already.
+
+So the honest position is narrower than the original one. What this project demonstrates is a
+correct, checkable implementation of a well-specified operational mechanic, plus a measurement
+that contradicted its own starting assumption. What it does not demonstrate is that anyone needs
+it. `docs/interview-guide.md` holds the questions that would settle that, written to falsify
+rather than confirm; `DECISIONS.md` lists which decisions a real conversation could reverse. Both
+stay in the repo as unfinished business rather than as completed work.
 
 ---
 
@@ -242,8 +293,11 @@ is testing. [`docs/DEPLOY.md`](docs/DEPLOY.md) — how it ships, and what delibe
 Ingestion, the object model, propagation, actions, the question-answering layer, the API and the
 frontend are built, tested and deployed. Two things are outstanding and neither is hidden:
 
-- **Discovery.** Three conversations, not yet held. Until then the persona is constructed and
-  labelled as such, and `DECISIONS.md` names the decisions those conversations could reverse.
+- **Discovery.** No interviews were held. The persona is built from published sources — BTS
+  reporting directives, IATA AHM 730 delay coding, the aircraft-recovery literature — which
+  corroborate the mechanics but not the premise that anyone lacks this capability.
+  `docs/interview-guide.md` holds the questions that would settle it and `DECISIONS.md` names the
+  decisions they could reverse.
 - **The eval score.** The ten questions, the hand-verified answers, the graders, both agents and
   the replay harness are all committed. The run is not: it needs an API key, so the panel reads
   `not run` rather than a number nobody produced.

@@ -139,7 +139,7 @@ export default function Page() {
       {failure && (
         <div className="error" style={{ margin: '12px 18px' }}>
           {failure} The API is hosted separately from this page and may be down; the repository,
-          the container image and the recorded eval do not depend on it.
+          the container image and the committed eval set do not depend on it.
         </div>
       )}
 
