@@ -138,15 +138,24 @@ def main() -> int:
         action="store_true",
         help="build the committed one-carrier, one-week sample instead of the full month",
     )
+    parser.add_argument(
+        "--database",
+        type=Path,
+        default=None,
+        help=(
+            "where to write the month; default data/flights.duckdb. Needed to hold two months "
+            "side by side, which is how the cascade-shape findings get replicated across seasons "
+            "instead of asserted from a single January."
+        ),
+    )
     args = parser.parse_args()
 
     year, month = (int(part) for part in args.month.split("-"))
     csv_path = download(year, month, REPO_ROOT / "data" / "raw")
-    database = (
-        REPO_ROOT / "data" / "sample" / "sample.duckdb"
-        if args.sample
-        else REPO_ROOT / "data" / "flights.duckdb"
-    )
+    if args.sample:
+        database = REPO_ROOT / "data" / "sample" / "sample.duckdb"
+    else:
+        database = args.database or REPO_ROOT / "data" / "flights.duckdb"
     build(csv_path, database, sample=args.sample)
     return 0
 

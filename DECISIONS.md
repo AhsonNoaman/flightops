@@ -858,6 +858,55 @@ written, now describing work that is open rather than work that is scheduled.
 
 **Date.** 2026-08-07 (M1, closed as not-done).
 
+## D47 — The central findings are replicated on a second month, chosen to disagree
+
+**Decision.** Re-run the entire measurement — cascade shape and the `LateAircraftDelay` check —
+unchanged, on **July 2025** alongside the original **January 2026**, and report both in the README
+whatever they say. July was chosen before any of it was measured, on the grounds that it is peak
+summer: highest utilisation, convective disruption, thin recovery slack. The one code change
+allowed was `--database` on `fetch_data.py`, because the output path was hardcoded and two months
+could not otherwise coexist.
+
+**Rejected.** Leaving a premise-contradicting finding resting on one month. Picking a second month
+after peeking at which one would agree. Reconciling the two if they diverged. Adding a second
+month to the deployed API — it doubles the image and the ranked list is a one-day view, so the
+replication is an offline claim about the engine, not a feature.
+
+**Why.** The finding this project is proudest of is that its own motivating premise was mostly
+wrong. A finding like that gets checked, and a single month is the obvious place to attack it: the
+ingestion could have been fitted to January without anyone noticing, including me. Three outcomes
+were acceptable in advance and all three were publishable — it replicates, it diverges and
+seasonality is the finding, or the pipeline breaks and the ingest was overfitted.
+
+**What happened.** The pipeline did not break: July ingested with no code change, and every
+data-quality expectation held, including the falsified one that made the propagation check
+possible. The core result replicated to the digit — median first-leg carry **0.91×** in both
+months, median cascade length **1** in both. The amplification tail did *not*: 43% of January
+cascades exceed their root against 31% of July's, mean 1.35× against 1.06×. So the weaker reading
+is the one that survives two months, which is the direction the January correction was already
+pointing.
+
+Two things came out that January alone could not have produced:
+
+- **The workload inverts the shape.** July damps harder per root and has 1,124 qualifying roots a
+  day against January's 673 — 57.1 per thousand flights against 40.4. The month with the less
+  dramatic cascade picture is the month with far more to triage. A tool designed around long
+  cascades would have been designed for the wrong month; the ranking is the right primitive, and
+  this is the second independent argument for it.
+- **A README explanation was falsified.** The positive bias against BTS was attributed to two
+  causes: scheduled block times being padded, and the engine projecting a do-nothing world where a
+  controller in fact acted. The bias halves in July (+14 to +7 median), but median
+  actual-minus-scheduled block time is −8 against −7 — effectively identical, so padding cannot
+  explain it. Cancellations, the most decisive intervention available, run 4.7% against 2.4%: the
+  intervention explanation survives, the block-time one does not. It is still association rather
+  than proof, and the README says so.
+
+The root-population figure required restating the Python root filter in SQL, which is a duplicated
+definition and therefore a future silent divergence. `tests/test_compare_months.py` asserts the two
+select the same flights rather than the same count.
+
+**Date.** 2026-08-10 (M4, revisited).
+
 ## Deployed
 
 The frontend is a static export on Vercel; the API is the repository's Docker image on Render,

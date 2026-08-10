@@ -46,9 +46,10 @@ class CauseBuckets(BaseModel):
     """BTS's own attribution of an arrival delay across five causes.
 
     Populated only when arrival delay reaches 15 minutes, and then the five sum to the arrival
-    delay exactly -- measured across all 107,475 bucketed legs in January 2026, with no
-    exceptions. `late_aircraft` is the dataset's independent answer to the question the
-    propagation engine computes, which is what makes it usable as validation at M4.
+    delay exactly -- measured with no exceptions across all 107,475 bucketed legs in January 2026
+    and, when the whole measurement was replicated on a second month, all 176,441 in July 2025.
+    `late_aircraft` is the dataset's independent answer to the question the propagation engine
+    computes, which is what makes it usable as validation at M4.
     """
 
     model_config = ConfigDict(frozen=True)

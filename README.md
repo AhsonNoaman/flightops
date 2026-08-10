@@ -89,23 +89,46 @@ stay in the repo as unfinished business rather than as completed work.
 
 ---
 
-## What the data actually says
+## What the data actually says, measured twice
 
 The premise this project started from was that a delay *amplifies* down a rotation — forty
-minutes at one station becoming three hours by evening. Measuring it first, over one BTS month
-(544,003 flights, 13 carriers), that turns out to be mostly wrong, and the correction is more
-interesting than the premise:
+minutes at one station becoming three hours by evening. Measured over one BTS month, that turned
+out to be mostly wrong, and the correction was more interesting than the premise. But one month
+is a weak place to leave a finding that contradicts your own brief, so the entire measurement was
+re-run — unchanged — on a second month picked to be as operationally different as this data
+allows: **July 2025** against the original **January 2026**.
 
-| Measured over 894 roots delayed 60+ minutes | |
-|---|---|
-| Propagate nothing at all — absorbed by scheduled ground time | **44%** |
-| Median delay carried into the *first* downstream leg | **0.91×** the root |
-| Median downstream legs affected | **1** |
-| Roots where summed downstream minutes exceed the root delay | **43%** |
+They are different months, and measurably so:
 
-Per-leg delay **damps**; schedule padding is doing real work. What can still exceed the root is
-the *sum* across legs, and only for the minority of roots that reach several. Those are two
-different claims and the motivating example conflates them.
+| | January 2026 | July 2025 |
+|---|---|---|
+| Flights | 544,003 | 628,920 |
+| Reporting carriers | 13 | 14 (HA is absent from January) |
+| Arrived 15+ minutes late | 20.8% | **28.9%** |
+| Cancelled | **4.7%** | 2.4% |
+| Share of delay minutes coded late-aircraft | 35% | **41%** |
+
+January is the cancellation month; July is the delay month. Ingestion needed no change to run on
+July beyond an output path, and nothing below was tuned to make the two agree.
+
+### The cascade shape replicates
+
+| Roots delayed 60+ min whose own delay is not mostly inherited | January 2026 | July 2025 |
+|---|---|---|
+| Propagate nothing at all — absorbed by scheduled ground time | 44% | 47% |
+| Median delay carried into the *first* downstream leg | **0.91×** | **0.91×** |
+| Median downstream legs affected | **1** | **1** |
+| Median summed downstream minutes ÷ root delay | 1.00× | 0.95× |
+| Mean summed downstream minutes ÷ root delay | 1.35× | 1.06× |
+| Roots where summed downstream minutes exceed the root | 43% | 31% |
+
+Per-leg delay **damps**, at the same 0.91× in both months, and the median cascade is one leg long
+in both. Schedule padding does real work in a quiet January and a congested July alike.
+
+Where the months diverge they diverge *against* the premise, not for it. The amplification tail —
+the minority of roots whose summed downstream minutes exceed the root — is largely a January
+property: 43% against 31%, mean 1.35× against 1.06×. Summing across legs and calling it
+amplification was always the weaker of the two readings; the second month makes it weaker still.
 
 This changes the product, not just the README. If nearly half of large delays cost nothing
 downstream, the valuable thing is not a cascade visualiser — it is the ranking that tells you
@@ -115,32 +138,65 @@ inherited from a late inbound, and the 422 because its rotation record cannot be
 that leg — while the top row is a 142-minute delay that cost 565 downstream minutes across five
 legs, two rows above a 343-minute delay that cost 338 across one.
 
-**Propagation, checked against the data's own answer.** BTS records `LateAircraftDelay`: the
-carrier's own attribution of how much of a leg's delay came from its inbound aircraft. It is
-produced independently of anything here, and it was measured to partition arrival delay exactly,
-so it is a clean check on the quantity this engine predicts.
+### The month that cascades less has far more to triage
 
-| | Sample (WN, one week) | Full month (13 carriers) |
+The table above measures the shape of a cascade. It says nothing about how many there are. Over
+the whole qualifying population rather than the replayed sample:
+
+| | January 2026 | July 2025 |
 |---|---|---|
-| Roots replayed | 359 | 400 |
-| Downstream legs compared | 587 | 669 |
-| Median error | **+5 min** | **+14 min** |
-| Within 30 min of BTS | 75% | 59% |
-| BTS says late, engine says on time | **0** | **0** |
+| Qualifying roots in the month | 20,878 | 34,829 |
+| Per day | 673 | **1,124** |
+| Per 1,000 flights flown | 40.4 | **57.1** |
 
-The bias is positive in both, and the reasons are known rather than mysterious: actual block
-times routinely beat scheduled ones, so projecting arrival as departure plus *scheduled* block
-over-predicts. And the engine projects a do-nothing world while the recorded outcome is a world
-where a controller intervened — a cascade the model predicts and BTS does not record is
-sometimes a cascade someone prevented, which is the tool's entire point. The zero in the last row
-is the reassuring one: the engine never misses a cascade BTS saw.
+July has 67% more roots to triage each day, and each one travels less far. That is the finding a
+single January could not have produced, and it points the same way the first correction did: the
+ranking is *more* valuable in the season where the cascade picture is *less* dramatic. A tool
+designed around long cascades would have been designed for the wrong month.
 
-Both tables above are produced by one command:
+### Propagation, checked against the data's own answer
+
+BTS records `LateAircraftDelay`: the carrier's own attribution of how much of a leg's delay came
+from its inbound aircraft. It is produced independently of anything here, and it was measured to
+partition arrival delay exactly, so it is a clean check on the quantity this engine predicts.
+
+| | Sample (WN, one week) | January 2026 | July 2025 |
+|---|---|---|---|
+| Roots replayed | 359 | 400 | 400 |
+| Downstream legs compared | 587 | 669 | 560 |
+| Median error | +5 min | **+14 min** | **+7 min** |
+| Within 30 min of BTS | 75% | 59% | 62% |
+| BTS says late, engine says on time | **0** | **0** | **0** |
+
+The row that had to hold holds in both: the engine never misses a cascade BTS saw. The bias is
+positive in both — and it halves in July, which is where the replication earned its keep, because
+**it falsified one of the two explanations this README previously offered for that bias.**
+
+The two candidates were block-time optimism (projecting arrival as departure plus *scheduled*
+block over-predicts, because actual block times beat scheduled ones) and intervention (the engine
+projects a do-nothing world, while the recorded outcome is a world where a controller acted).
+Median actual-minus-scheduled block time is **−8 minutes in January and −7 in July** —
+effectively identical, so block-time optimism cannot account for a bias that halves between them.
+The cancellation rate is 4.7% against 2.4%: roughly twice as much of the most decisive
+intervention available, in the month where the engine over-predicts roughly twice as much. That
+is consistent with the intervention explanation rather than proof of it — cancellations were not
+traced to the specific roots replayed — but it is the candidate left standing, and one month
+could not have told the two apart.
+
+Every number above comes from the same two commands, pointed at a different file:
 
 ```bash
-python -m flightops.propagation.validate                      # the committed sample
-python -m flightops.propagation.validate data/flights.duckdb  # the full month, after fetch_data.py
+python -m flightops.propagation.validate                       # the committed sample
+
+python scripts/fetch_data.py --month 2026-01 --database data/flights_2026_01.duckdb
+python -m flightops.propagation.validate data/flights_2026_01.duckdb
+
+python scripts/fetch_data.py --month 2025-07 --database data/flights_2025_07.duckdb
+python -m flightops.propagation.validate data/flights_2025_07.duckdb
 ```
+
+The month-character and root-population figures come from `scripts/compare_months.py`, which
+takes the two databases and prints the three tables above it.
 
 ---
 
@@ -251,7 +307,9 @@ These are in the product because they are real, not because they were overlooked
   remaining line of flying, and the diff says the number it reports is relief on *this* rotation,
   not net effect on the network.
 - **Ferry and positioning moves are invisible**, which is why 7% of legs have no `next_leg`.
-- **One month of one year.** No seasonality, no comparison to a normal day.
+- **Two months, not a year.** January 2026 and July 2025 bracket the seasonal range usefully, and
+  the cascade shape held across both. They are still two points: no shoulder season, no
+  year-over-year comparison, and no single named disruption event traced end to end.
 
 ---
 
@@ -265,9 +323,13 @@ make check       # ruff, mypy --strict, pytest, and the frontend typecheck
 make docker      # the API image, exactly as the deploy builds it
 ```
 
-117 tests plus one that skips until an eval run is recorded — all offline and deterministic,
-against the committed one-week sample. The full
-BTS month is gitignored and rebuilt on demand with `python scripts/fetch_data.py --month 2026-01`.
+123 tests plus one that skips until an eval run is recorded — all offline and deterministic,
+against the committed one-week sample. The full months are gitignored and rebuilt on demand:
+
+```bash
+python scripts/fetch_data.py --month 2026-01 --database data/flights_2026_01.duckdb
+python scripts/fetch_data.py --month 2025-07 --database data/flights_2025_07.duckdb
+```
 
 ---
 
@@ -305,5 +367,7 @@ frontend are built, tested and deployed. Two things are outstanding and neither 
 ## Data
 
 US DOT / Bureau of Transportation Statistics, On-Time Reporting Carrier On-Time Performance,
-January 2026, from <https://transtats.bts.gov>. Public domain. Airport timezones and carrier
-names are two small committed reference tables with provenance noted in-file.
+January 2026 and July 2025, from <https://transtats.bts.gov>. Public domain. The deployed API
+serves January 2026; July 2025 is the replication month and is measured offline. Airport
+timezones and carrier names are two small committed reference tables with provenance noted
+in-file.
