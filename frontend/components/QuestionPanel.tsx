@@ -8,26 +8,64 @@ import { ApiError, AskResponse, EvalReport, api } from '@/lib/api';
  *
  * Live answering costs money per question and this URL is public, so it is off unless the
  * deployment has an API key. When it is off the panel does not hide -- it shows the ten eval
- * questions, their hand-verified answers and the recorded scores, which is a more honest
- * demonstration than a live box would be anyway: fixed questions with published transcripts
- * cannot be cherry-picked after the fact.
+ * questions, their hand-verified answers, and whatever the scores actually are, which for now is
+ * that there are none.
+ *
+ * Every claim in here is generated from the API's own report rather than written into the copy.
+ * An earlier version of this panel hardcoded the sentence "the ten questions below were run
+ * against both agents and every transcript is committed", which was false and stayed false while
+ * the README two clicks away said the opposite. Prose that asserts a fact the server already
+ * knows is prose that will eventually contradict it.
  *
  * Pass and fail carry a glyph as well as a colour, here and everywhere else in this interface.
  * A tick that is only distinguishable by hue is not a result, it is a decoration.
  */
-export function QuestionPanel({ liveEnabled }: { liveEnabled: boolean }) {
+export function QuestionPanel({
+  liveEnabled,
+  ready,
+}: {
+  liveEnabled: boolean;
+  ready: boolean;
+}) {
   const [question, setQuestion] = useState('');
   const [answer, setAnswer] = useState<AskResponse | null>(null);
   const [failure, setFailure] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [report, setReport] = useState<EvalReport | null>(null);
+  const [reportError, setReportError] = useState<string | null>(null);
 
   useEffect(() => {
-    api
-      .evalReport()
-      .then(setReport)
-      .catch(() => setReport(null));
-  }, []);
+    // Wait for the page to have reached the API at all before asking it for the eval. This used
+    // to fire on mount with a single attempt, which meant that against a sleeping free-tier
+    // container the request failed once, gave up, and left the panel reading "Eval unavailable"
+    // long after the API had woken up and the rest of the screen had filled in.
+    if (!ready) return;
+    let cancelled = false;
+
+    async function load(): Promise<void> {
+      for (let attempt = 0; attempt < 5 && !cancelled; attempt += 1) {
+        try {
+          const body = await api.evalReport();
+          if (cancelled) return;
+          setReport(body);
+          setReportError(null);
+          return;
+        } catch (error) {
+          if (cancelled) return;
+          if (attempt === 4) {
+            setReportError(error instanceof ApiError ? error.message : String(error));
+            return;
+          }
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+        }
+      }
+    }
+
+    void load();
+    return () => {
+      cancelled = true;
+    };
+  }, [ready]);
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
@@ -73,7 +111,8 @@ export function QuestionPanel({ liveEnabled }: { liveEnabled: boolean }) {
       {!liveEnabled && (
         <div className="note">
           Live answering is off on this deployment so a public URL cannot accrue cost. The ten
-          questions below were run against both agents and every transcript is committed.
+          questions below, their hand-verified answers and the graders that check them are in the
+          repository; the scores beside them are whatever has actually been recorded.
         </div>
       )}
 
@@ -143,8 +182,14 @@ export function QuestionPanel({ liveEnabled }: { liveEnabled: boolean }) {
               </details>
             ))}
           </>
+        ) : reportError ? (
+          <div className="error">
+            Could not load the eval from the API: {reportError} It is served from{' '}
+            <code>/api/eval</code> and also committed to the repository as{' '}
+            <code>docs/EVAL.md</code>.
+          </div>
         ) : (
-          <p className="caption">Eval unavailable.</p>
+          <p className="skeleton">Loading the eval…</p>
         )}
       </div>
     </>

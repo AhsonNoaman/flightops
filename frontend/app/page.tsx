@@ -170,7 +170,7 @@ export default function Page() {
         </section>
 
         <section className="pane">
-          <QuestionPanel liveEnabled={health?.live_answers ?? false} />
+          <QuestionPanel liveEnabled={health?.live_answers ?? false} ready={health !== null} />
         </section>
       </div>
     </>

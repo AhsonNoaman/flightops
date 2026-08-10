@@ -825,7 +825,7 @@ a working screen.
 The frontend is a static export on Vercel; the API is the repository's Docker image on Render,
 built from `render.yaml` in this repo rather than from a dashboard form. Both deploy on push.
 
-- https://flightops-ahsonnoamans-projects.vercel.app
+- https://flightops-woad.vercel.app
 - https://flightops-api.onrender.com/api/health
 
 Two things the deploy taught, both recorded above: `outputDirectory` in `vercel.json` overrode
