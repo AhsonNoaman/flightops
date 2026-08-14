@@ -371,7 +371,7 @@ make check       # ruff, mypy --strict, pytest, and the frontend typecheck
 make docker      # the API image, exactly as the deploy builds it
 ```
 
-135 tests, all offline and deterministic, against the committed one-week sample. That includes
+154 tests, all offline and deterministic, against the committed one-week sample. That includes
 re-grading every committed eval transcript, so a change to propagation or the store that would
 have altered a published answer fails the build. The full months are gitignored and rebuilt on
 demand:

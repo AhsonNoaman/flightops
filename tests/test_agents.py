@@ -21,6 +21,7 @@ score.
 from __future__ import annotations
 
 import json
+import re
 from collections.abc import Iterator
 from pathlib import Path
 from typing import cast
@@ -468,21 +469,68 @@ def _recorded_transcripts() -> list[Path]:
     return sorted(TRANSCRIPTS.glob("*/*.json")) if TRANSCRIPTS.exists() else []
 
 
-def _comparable(payload: str) -> object:
-    """A SQL result with its row order normalised away.
+_LIMITED = re.compile(r"\blimit\b", re.IGNORECASE)
 
-    The ontology tools order their own output, so their replay is compared byte for byte. The
-    baseline's queries are written by the model, and several group without an ORDER BY, which
-    leaves row order undefined by SQL itself. Asserting byte equality there asserts something the
-    query never promised. The rows themselves are still compared exactly.
+
+def _comparable(payload: str, sql: str | None = None) -> object:
+    """A recorded SQL result reduced to the part the query actually pinned down.
+
+    The ontology tools choose their own ordering, so their replays are compared byte for byte.
+    The baseline's queries are written by the model, and the model wrote three kinds of query
+    whose output is not fully determined:
+
+    Unordered but complete. A `GROUP BY` with no `ORDER BY` returns every group in an arbitrary
+    sequence. The rows are pinned down, the order is not, so the rows are compared as a multiset.
+
+    An arbitrary subset. When rows are discarded without a total order over them, which rows
+    survive is undefined. That happens two ways here: the tool's own 40-row cap, which sets
+    `truncated`, and a model-written `LIMIT 8` over a column with ties at the boundary. Only the
+    shape can be asserted, because only the shape was promised.
+
+    Comparing more than this is how the first version of the fix became flaky. It re-ran a
+    disagreeing query and expected a second disagreement to prove non-determinism, but DuckDB's
+    hash-aggregate order is frequently stable inside one process and different across machines.
+    That passed locally and failed in CI, which is the worst way for a test to be wrong.
     """
     try:
         parsed = json.loads(payload)
     except json.JSONDecodeError:
         return payload
-    if isinstance(parsed, dict) and isinstance(parsed.get("rows"), list):
-        parsed["rows"] = sorted(parsed["rows"], key=lambda row: json.dumps(row, sort_keys=True))
+    rows = parsed.get("rows") if isinstance(parsed, dict) else None
+    if not isinstance(rows, list):
+        return parsed
+    if "truncated" in parsed or (sql is not None and _LIMITED.search(sql)):
+        parsed["rows"] = f"<{len(rows)} rows, an arbitrary subset the query did not order>"
+    else:
+        parsed["rows"] = sorted(rows, key=lambda row: json.dumps(row, sort_keys=True))
     return parsed
+
+
+def test_comparable_tolerates_only_what_the_query_left_undefined() -> None:
+    """The replay comparison's own rules, asserted directly.
+
+    This carries real judgement about what a SQL result promises, so it gets tested rather than
+    only exercised through the transcripts. The first version of it was flaky, and a flaky
+    reproducibility check is worse than none.
+    """
+    full = json.dumps({"columns": ["a"], "rows": [{"a": 1}, {"a": 2}]})
+    reordered = json.dumps({"columns": ["a"], "rows": [{"a": 2}, {"a": 1}]})
+    altered = json.dumps({"columns": ["a"], "rows": [{"a": 1}, {"a": 3}]})
+    capped = json.dumps({"columns": ["a"], "rows": [{"a": 1}, {"a": 2}], "truncated": "more"})
+    capped_other = json.dumps({"columns": ["a"], "rows": [{"a": 9}, {"a": 8}], "truncated": "more"})
+    capped_shorter = json.dumps({"columns": ["a"], "rows": [{"a": 9}], "truncated": "more"})
+
+    # Order is not promised by a GROUP BY, so a permutation is the same answer.
+    assert _comparable(full) == _comparable(reordered)
+    # The rows themselves are promised, so a changed value is still a regression.
+    assert _comparable(full) != _comparable(altered)
+    # Which rows survive a cap or a LIMIT is not promised, so a different subset is tolerated.
+    assert _comparable(capped) == _comparable(capped_other)
+    assert _comparable(full, "select x limit 8") == _comparable(altered, "select x limit 8")
+    # Shape is still promised even then.
+    assert _comparable(capped) != _comparable(capped_shorter)
+    # And a query with no LIMIT gets the strict comparison.
+    assert _comparable(full, "select x") != _comparable(altered, "select x")
 
 
 @pytest.mark.skipif(
@@ -497,15 +545,11 @@ def test_recorded_tool_calls_still_return_what_was_recorded(path: Path, database
     rather than each call in isolation: a swap only reproduces its recorded diff if the delay
     that preceded it in the same scenario has been applied first.
 
-    The two agents are held to different standards, for a reason that is a finding rather than a
+    The two agents are held to different standards, and the difference is a finding rather than a
     convenience. The ontology tools decide their own ordering, so a recorded result must come back
-    byte for byte. The baseline's tool runs whatever SQL the model wrote, and the model wrote some
-    queries that are not reproducible: `ORDER BY n DESC LIMIT 8` over a column with ties at the
-    boundary does not define which eight rows come back, and `string_agg` without an ORDER BY
-    inside it does not define the order within the string. A differing result there is a property
-    of the query, not a regression in this repository, so the query is re-run and the two fresh
-    results compared against each other. Only a query that is stable on re-run and disagrees with
-    the recording counts as a regression.
+    byte for byte, and all ten of those transcripts do. The baseline's tool runs whatever SQL the
+    model wrote, and `_comparable` explains what parts of that output the query actually pinned
+    down. Everything a query determined is still asserted exactly.
     """
     transcript = loop.Transcript.read(path)
     with ObjectStore(database) as store:
@@ -522,19 +566,15 @@ def test_recorded_tool_calls_still_return_what_was_recorded(path: Path, database
         else:
             with baseline.SqlBaseline(database) as sql:
                 execute = sql.executor()
-
-                def run(call: loop.ToolCall) -> tuple[str, bool]:
-                    try:
-                        return json.dumps(execute(call.name, call.arguments), default=str), False
-                    except ToolFailure as failure:
-                        return str(failure), True
-
                 for call in transcript.tool_calls:
-                    replayed, errored = run(call)
+                    try:
+                        replayed = json.dumps(execute(call.name, call.arguments), default=str)
+                        errored = False
+                    except ToolFailure as failure:
+                        replayed, errored = str(failure), True
                     assert errored == call.is_error, f"{call.name} changed error status"
-                    if _comparable(replayed) == _comparable(call.result):
-                        continue
-                    again, _ = run(call)
-                    assert _comparable(again) != _comparable(replayed), (
-                        f"{call.name} is reproducible and changed its result since it was recorded"
+                    query = call.arguments.get("sql") if isinstance(call.arguments, dict) else None
+                    text = query if isinstance(query, str) else None
+                    assert _comparable(replayed, text) == _comparable(call.result, text), (
+                        f"{call.name} changed its result"
                     )
