@@ -399,8 +399,7 @@ minutes, in their vocabulary, with every failure mode named.
 
 [`docs/EVAL.md`](docs/EVAL.md) holds the ten questions, the hand-verified answers, and what each
 one is testing. [`docs/DEPLOY.md`](docs/DEPLOY.md) covers how it ships, and what deliberately
-does not. [`docs/DEMO.md`](docs/DEMO.md) is the shot list for the walkthrough, with the numbers
-it names read off the live deployment rather than remembered.
+does not.
 
 ## Status
 
