@@ -18,11 +18,12 @@ document is rewritten around the real operation:
    record-keeping.
 3. Some of their data can appear in a public repo, at least anonymized.
 
-Why B is defensible here: the applicant shipped Uber Reserve airport pickup enablement
-at Billy Bishop and Edmonton and worked directly with airport operations; the domain has
-a hard computable core (delay propagation through aircraft rotation) rather than
-dashboard analytics; and the dataset carries its own ground truth for cascades
-(LateAircraftDelay attribution), so the model can be validated honestly.
+Why B is defensible here: I have shipped ground transport operations work at Canadian
+airports and dealt with airport operations teams directly, so the vocabulary and the
+constraints are not new to me; the domain has a hard computable core (delay propagation
+through aircraft rotation) rather than dashboard analytics; and the dataset carries its
+own ground truth for cascades (LateAircraftDelay attribution), so the model can be
+validated honestly.
 
 What B obligates: at least three real conversations with people adjacent to airline or
 airport operations during M1, primary-source research, and a persona that is always
@@ -254,8 +255,8 @@ source means stop and ask.
 
 1. The runbook's milestone numbers drift from the brief's (it calls ingestion M1; the
    brief's M1 is discovery, which the runbook omits because it cannot be delegated).
-   Numbering here follows the brief; discovery is the applicant's own legwork and gates
-   the writeup's "what I got wrong" moment.
+   Numbering here follows the brief; discovery is my own legwork and gates the writeup's
+   "what I got wrong" moment.
 2. A read-only deployed database contradicts mutating actions; resolved now by the
    scenario overlay (section 7) rather than discovered at M7.
 3. The eval baseline persuades only if it is not a strawman: same model, fair prompt,
