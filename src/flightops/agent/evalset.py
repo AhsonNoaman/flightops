@@ -41,6 +41,19 @@ from dataclasses import dataclass, field
 # -1 and -3, and a grader looking for a negative gap would match on a flight id.
 _NUMBER = re.compile(r"(?<![\d.])-?\d+(?:\.\d+)?")
 
+# Markdown escaping, undone before anything is matched against an answer. Flight ids are
+# pipe-delimited, and a pipe inside a markdown table cell has to be written `\|` or the cell
+# splits in two. Both agents did exactly that on the first live run, laying every cited id out
+# in a table, and a literal substring check scored two correct and fully-cited answers as having
+# cited nothing. The requirement is that the id is present for a reader to check, and it was.
+_MARKDOWN_ESCAPE = re.compile(r"\\([\\`*_{}\[\]()#+\-.!|>])")
+
+
+def _unescape(text: str) -> str:
+    """Strip markdown backslash escapes so a formatting choice cannot change a grade."""
+    return _MARKDOWN_ESCAPE.sub(r"\1", text)
+
+
 _WORD_NUMBERS = {
     "zero": "0",
     "one": "1",
@@ -116,8 +129,9 @@ class Question:
     """Substrings whose presence is a fabrication. Used by the unanswerable question."""
 
     def grade(self, answer: str) -> Grade:
-        lowered = answer.lower()
-        numbers = _numbers_in(answer)
+        plain = _unescape(answer)
+        lowered = plain.lower()
+        numbers = _numbers_in(plain)
         failures: list[str] = []
 
         for object_id in self.must_cite:

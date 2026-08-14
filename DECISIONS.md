@@ -183,7 +183,7 @@ convention for the quality report.
 **Rejected.** Parsing DepTime/ArrTime as local hhmm and reconstructing the calendar date.
 
 **Why.** BTS reports actual times as local hhmm with no date, so recovering a timestamp means
-inferring whether the leg crossed midnight -- and the file uses 2400 for midnight, which appears
+inferring whether the leg crossed midnight, and the file uses 2400 for midnight, which appears
 249 times in January 2026. Delay minutes are signed offsets from times that are already anchored
 to a date, so the arithmetic is exact and the ambiguity never arises. The measured consequence:
 the 2400 convention appears in no scheduled field and therefore never reaches the model at all.
@@ -205,8 +205,8 @@ by CRSElapsedTime, since a wrong zone silently corrupts rotation ordering. Deriv
 the block turns that cross-check from a separate validation script into a property of the load:
 if a zone is wrong, every leg touching that airport disagrees with its own reported arrival time
 by exactly an hour. Measured over 544,003 legs, 543,995 agree. The 8 that do not are isolated
-rows whose CRSElapsedTime contradicts their own scheduled times -- one has a scheduled block of
-minus 64 minutes -- and no airport disagrees systematically, which is what distinguishes a bad
+rows whose CRSElapsedTime contradicts their own scheduled times (one has a scheduled block of
+minus 64 minutes) and no airport disagrees systematically, which is what distinguishes a bad
 row from a bad zone. All three hand-filled zones (BIH, EAR, XWA) agree on 100% of their legs.
 
 **Date.** 2026-08-05 (M2), from DESIGN.md §4, §9.
@@ -221,7 +221,7 @@ departure time.
 **Why.** The design argued destination was redundant because flight numbers repeat on a route,
 not across routes. January 2026 contains a counterexample: F9 3237 out of JFK at 0659 on
 2026-01-04 is filed twice, once to CVG and once to LAS, both cancelled. One collision in 544,003
-rows is still a collision, and a primary key that is almost unique is not a primary key -- it
+rows is still a collision, and a primary key that is almost unique is not a primary key. It
 would silently merge two legs during link derivation. Found by testing the key rather than
 assuming it.
 
@@ -234,7 +234,7 @@ assuming it.
 **Rejected.** Prepending "N" to the 123 tails that lack it, to make the format uniform.
 
 **Why.** DESIGN.md §9 anticipated inconsistent leading-N formatting as a problem to repair. It is
-real -- 8,754 legs carry tails like "188NV" -- but it is entirely one carrier's reporting
+real, since 8,754 legs carry tails like "188NV", but it is entirely one carrier's reporting
 convention (Allegiant), and there are zero cases where the same aircraft appears in both forms.
 So normalising fixes nothing and asserts a registration that has not been verified against any
 registry. Chains are unaffected: every tail in the month is flown by exactly one reporting
@@ -253,7 +253,7 @@ linked through.
 **Why.** Excluding them manufactures station discontinuities: with the cancelled leg removed, the
 aircraft's next scheduled departure appears to come from an airport it never flew to, and a
 genuine data gap becomes indistinguishable from a routine cancellation. It also buries the
-operational consequence in the wrong layer -- what a cancellation does to the rest of the day is
+operational consequence in the wrong layer. What a cancellation does to the rest of the day is
 exactly what cancel_flight and the propagation engine exist to compute, and they cannot reason
 about a leg that link derivation already deleted.
 
@@ -268,8 +268,8 @@ candidate links in January 2026.
 **Rejected.** Linking them anyway with a negative ground time. Silently dropping them.
 
 **Why.** DESIGN.md §5 anticipated two break reasons: station discontinuity and end of window.
-This is a third and distinct failure. Station continuity holds -- the aircraft does depart from
-where it landed -- but the timing is physically impossible, as with N574DT, reported on DL740
+This is a third and distinct failure. Station continuity holds, since the aircraft does depart
+from where it landed, but the timing is physically impossible, as with N574DT, reported on DL740
 JFK-SEA departing 21:40 UTC and DL415 SEA-JFK departing 21:45 UTC. The tail assignment cannot be
 right for both, most likely a swap that BTS recorded against the original schedule. Linking
 through it would compute a cascade for an aircraft that was never there, which is worse than a
@@ -289,7 +289,7 @@ this is not a cancellation artefact.
 buckets, the five buckets sum to the arrival delay exactly, with zero exceptions, and buckets
 appear if and only if arrival delay reaches 15 minutes. That makes LateAircraftDelay a clean
 independent measurement of how much of a leg's delay the carrier attributed to its inbound
-aircraft -- which is the quantity the propagation engine predicts. The validation is only as good
+aircraft, which is the quantity the propagation engine predicts. The validation is only as good
 as the assumption, so it is pinned by a test rather than left as a note.
 
 **Date.** 2026-08-05 (M2), from DESIGN.md §9, §10.
@@ -321,7 +321,7 @@ the same stored table by `to_flight_id`.
 **Why.** Triage runs backwards. The operator does not start from a root cause; they start from a
 late flight on the board and need to know what put it there. With only the forward link, every
 caller answering "why is this late" would have to scan for the flight that links to it, which
-means writing SQL outside the store -- the one thing the store exists to prevent. This adds no
+means writing SQL outside the store, the one thing the store exists to prevent. This adds no
 object, no table, and no ambiguity: it is the same edge read from the other end.
 
 **Date.** 2026-08-05 (M3), from DESIGN.md §5, §11.
@@ -335,8 +335,8 @@ legs. Reads check the dict, then fall through to the store.
 COALESCE.
 
 **Why.** The deployed API opens the database read-only, so a scenario that needs to write to it
-is a contradiction, not a design. An in-memory overlay makes session isolation free -- two
-operators replaying the same day cannot see each other, which is asserted by a test -- and it
+is a contradiction, not a design. An in-memory overlay makes session isolation free, since two
+operators replaying the same day cannot see each other, which a test asserts, and it
 keeps the immutability guarantee checkable in one place instead of spread across SQL. The cost
 would be scale, and there is none to pay: an action touches one rotation, tens of legs, not
 thousands. The base file stays what DESIGN.md §7 says it is, historical fact.
@@ -350,8 +350,9 @@ clock. The BTS status field is used only to exclude legs already cancelled in th
 
 **Rejected.** Treating the recorded status as the precondition input.
 
-**Why.** Every leg in the base data has already happened -- it is a completed month. If actions
-keyed off the recorded status, nothing would ever be actionable, because every flight is already
+**Why.** Every leg in the base data has already happened, because it is a completed month. If
+actions keyed off the recorded status, nothing would ever be actionable, because every flight is
+already
 `arrived` or `cancelled`. Replay only means anything if "now" is a position inside the day, so
 the clock is what decides whether a flight can still be delayed, swapped, or cancelled. This is
 also what makes preconditions deterministic: the same scenario replays identically tomorrow,
@@ -372,7 +373,7 @@ sample threshold, falling back carrier-wide". A percentile over four turns at a 
 noise presented as a measurement, and propagation would inherit it invisibly. Returning None
 forces the choice into the propagation engine where it can be seen, tested, and reported. The
 station-level distribution justifies the effort: measured p05 turn times differ sharply by
-carrier -- WN 35 minutes, OO 30, DL 47, UA 56 -- so a single global constant would be wrong for
+carrier (WN 35 minutes, OO 30, DL 47, UA 56) so a single global constant would be wrong for
 almost everyone.
 
 **Date.** 2026-08-05 (M3), from DESIGN.md §10.
@@ -387,8 +388,8 @@ termination reason and is deliberately kept out of every calculation.
 **Rejected.** A single global minimum turn time. Letting the overnight threshold decide
 absorption.
 
-**Why.** The measured distribution is bimodal exactly as DESIGN.md §10 predicted -- a turn mode
-peaking at 60-89 minutes, a minimum-density bin at 270-299, an overnight mode rising from 360 --
+**Why.** The measured distribution is bimodal exactly as DESIGN.md §10 predicted: a turn mode
+peaking at 60-89 minutes, a minimum-density bin at 270-299, an overnight mode rising from 360,
 so 285 is the centre of the trough rather than a round number. Per-carrier turn estimates differ
 too much for a constant to be defensible: WN 35 minutes at LAS, UA 57 at ORD. Excluding sub-15
 minute turns matters because 1,943 links show scheduled ground times no narrowbody can achieve,
@@ -417,7 +418,7 @@ reproduce the recorded outcome would make it predict the recovery that the opera
 decided to make yet, which is precisely the decision the tool exists to support.
 
 Measured on the full month: mean error +19.8 minutes, median +14, 59% of legs within 30 minutes.
-The asymmetry is the operationally important part -- 117 legs where the engine warned and BTS
+The asymmetry is the operationally important part. 117 legs where the engine warned and BTS
 attributed nothing, and **zero** where BTS attributed a cascade the engine missed. For triage,
 over-warning is visible and correctable; under-warning is neither.
 
@@ -460,7 +461,7 @@ cascade at DEN.
 first. Measured: the pinned Southwest cascade decays 142, 127, 117, 112, 107, 102 down the
 rotation as scheduled slack absorbs it at every turn, while the sum across the five downstream
 legs reaches 565 minutes. Both statements are true and they are different claims. The honest one
-is that a root delay spreads across many legs rather than growing on any one of them -- which is
+is that a root delay spreads across many legs rather than growing on any one of them, which is
 still the operator's problem, because it is five late flights instead of one.
 
 **Date.** 2026-08-05 (M4), from DESIGN.md §10.
@@ -494,7 +495,7 @@ which is how this was first written.
 **Why.** A bug, caught by rendering a real diff rather than by the tests. The overlay already
 carries an applied delay inside the leg's own scheduled times, so passing that same delay back
 into the projection applied it twice. On UA1636's real cascade the swap reported clearing 1,447
-minutes of what is actually a 510-minute cascade -- nearly triple, and in the direction that
+minutes of what is actually a 510-minute cascade, nearly triple, and in the direction that
 overstates the value of the tool's own advice, which is the worst way for it to be wrong.
 
 The fix is one line in each action. The more useful outcome is the invariant it exposed: what a
@@ -530,7 +531,7 @@ minute and never moves.
 
 **Why.** Two problems, one fix. Every flight in the data has already operated, so a real "now"
 makes `is_pending` reject everything and no action is ever legal. And a recovery has to be
-measured against a world where the delay exists -- a swap simulated against an undelayed rotation
+measured against a world where the delay exists. A swap simulated against an undelayed rotation
 clears nothing, so every recovery answer would read "saves 0 minutes" and the model would have no
 way to tell that from a genuinely worthless swap. Both are covered by a test that asserts the
 composed swap clears 565 minutes and the isolated one clears zero.
@@ -559,7 +560,7 @@ and a bad one comes back as a sentence naming the valid values.
 **Rejected.** Structured outputs' `strict: true` on the tool schemas.
 
 **Why.** Two reasons, and the second is the honest one. A rejection is a real output of these
-tools -- "unknown link 'downstream'; the ontology has flown_by, operated_by, ..." teaches the
+tools. "unknown link 'downstream'; the ontology has flown_by, operated_by, ..." teaches the
 model what to do next, where a schema violation just fails. And `strict` mode's handling of
 optional properties could not be verified against the live API without a key, so shipping it
 would have meant guessing at a 400 nobody could reproduce. Revisit once there is a key.
@@ -574,8 +575,9 @@ tolerances, required phrasings, and forbidden claims. `Question.grade` is about 
 **Rejected.** A model grading the answers against the reference.
 
 **Why.** A judge is a second model marking the first one's homework with no ground truth of its
-own, and its disagreements cannot be adjudicated. These checks are crude -- a number satisfies
-its check by appearing anywhere in the answer -- but they are inspectable, and paired with the
+own, and its disagreements cannot be adjudicated. These checks are crude, since a number
+satisfies its check by appearing anywhere in the answer, but they are inspectable, and paired
+with the
 citation requirement they mean any passing answer can be re-verified by hand in about a minute.
 A guard against the obvious failure mode: every hand-verified reference answer is run through its
 own grader in `tests/test_agents.py`, so a check its own correct answer cannot pass is a test
@@ -594,7 +596,7 @@ same bytes.
 
 **Why.** Withholding the derived links would make the comparison meaningless: M2's rotation
 derivation is a data-engineering result, not a property of the object layer, and hiding it would
-measure the wrong thing. The one asymmetry that remains is stated rather than hidden -- the
+measure the wrong thing. The one asymmetry that remains is stated rather than hidden: the
 ontology agent's `simulate_action` calls the shipped propagation engine while the baseline
 re-derives the projection in SQL per question. That gap is not an unfair prompt; it is the
 hypothesis under test.
@@ -614,7 +616,7 @@ exactly"; SQL answers it with one `GROUP BY`. Keeping it means the published tab
 the typed layer costs you, which is the difference between an eval and a demo. Whatever the
 result, the writeup says so. The unanswerable question is there because BTS carries a tail number
 but no aircraft type and no passenger data, and a model that pattern-matches Southwest to a 737
-produces a fluent unverifiable answer -- exactly the failure the citation discipline exists to
+produces a fluent unverifiable answer, exactly the failure the citation discipline exists to
 make impossible.
 
 **Date.** 2026-08-06 (M6), from DESIGN.md §11.
@@ -622,7 +624,7 @@ make impossible.
 ## D36. The eval runs against the committed sample, not the full month
 
 **Decision.** Every hand-verified answer and every transcript comes from
-`data/sample/bts_wn_2026_01_w1.csv.gz` -- Southwest, 2026-01-01 to 2026-01-07, 26,161 flights.
+`data/sample/bts_wn_2026_01_w1.csv.gz`, Southwest, 2026-01-01 to 2026-01-07, 26,161 flights.
 
 **Rejected.** Running it against the full ingested month.
 
@@ -643,7 +645,7 @@ consequence rather than a cause.
 **Why.** A list sorted by delay shows one disruption five times: the aircraft that went late at
 08:55 appears again at 10:55, 14:40, 15:45 and 17:35, each as its own late flight, and the
 second-worst problem of the day never makes the screen. The exclusion rule is not a heuristic
-invented here -- BTS already records which legs were late because their inbound aircraft was
+invented here. BTS already records which legs were late because their inbound aircraft was
 late, so the distinction is read from the data rather than guessed. On 2026-01-03 the top row is
 WN3851 PHX-SFO with 565 downstream minutes, which is the cascade the eval set is built around.
 
@@ -673,8 +675,8 @@ string verbatim. The frontend renders it as-is.
 
 **Rejected.** Mapping domain rejections to a generic 400 and a sanitised message.
 
-**Why.** M5 spent its effort making rejections say the useful thing -- "N8528Q lands at PHX at
-14:05 UTC and needs 38 min to turn, which is 12 min short of the 14:35 departure" -- and a
+**Why.** M5 spent its effort making rejections say the useful thing, as in "N8528Q lands at PHX
+at 14:05 UTC and needs 38 min to turn, which is 12 min short of the 14:35 departure", and a
 transport layer that replaces that with "invalid request" throws away the most valuable output
 the domain produces. 409 rather than 400 because the request was well formed; it was the world
 that said no.
@@ -692,7 +694,7 @@ do, and a second place for secrets to live); a mounted volume or hosted database
 
 **Why.** The two halves have opposite cost profiles and should not share a runtime. The frontend
 holds no secrets and needs no server, so it should be free and cacheable. The API needs a
-process and 7 MB of immutable data, which an image holds perfectly well -- and building the
+process and 7 MB of immutable data, which an image holds perfectly well, and building the
 database during the image build means the deployed data is reproducible from the repository
 rather than copied off a laptop.
 
@@ -713,7 +715,7 @@ careful thing to do and is the reason the first deploy failed.
 
 **Why.** With the Next.js preset, Vercel reads `next.config.mjs`, sees the static export, and
 finds the output itself. Setting the directory by hand does not confirm that detection, it
-replaces it -- and it replaces it with a half-truth. A static export writes the site to `out/`
+replaces it, and it replaces it with a half-truth. A static export writes the site to `out/`
 but leaves `routes-manifest.json` in `.next/`, so Vercel's post-build step looked for the
 manifest under `out/` and failed with a missing-file error *after* a build that had already
 compiled, typechecked and rendered all three pages successfully.
@@ -731,14 +733,14 @@ redundant, it is a second source of truth that only speaks up when it disagrees.
 ## D42. Two data colours, chosen by a validator rather than by eye
 
 **Decision.** The interface reserves hue for data and spends it on exactly two: orange for minutes
-added, blue for minutes given back. Everything else -- selection, hover, focus, panel chrome -- is
+added, blue for minutes given back. Everything else (selection, hover, focus, panel chrome) is
 greyscale. Selection is a surface change and a 2px rule, never a colour.
 
 **Rejected.** Green for "recovered" and red for "worse", which is what the first version used and
 what most dashboards use.
 
 **Why.** Green `#0ca30c` and red `#d03b3b` differ by 4.1 under simulated deuteranopia, against a
-floor of 8. A red-green viewer -- around one man in twelve -- could not tell a recovery from a
+floor of 8. A red-green viewer, around one man in twelve, could not tell a recovery from a
 regression in the one panel where that distinction is the entire output. Orange `#d95926` and blue
 `#3987e5` measure 26.8 under the same simulation and 31.8 under normal vision, and they carry the
 better metaphor anyway: warm for time you have taken on, cool for time you have handed back.
@@ -763,7 +765,7 @@ as numbers.
 
 **Rejected.** The table alone (what shipped first); the timeline alone.
 
-**Why.** A cascade is a shape -- one aircraft's late morning walking through its afternoon -- and
+**Why.** A cascade is a shape, one aircraft's late morning walking through its afternoon, and
 a column of projected timestamps makes the reader rebuild that shape in their head. Drawing it is
 not decoration; it is the difference between reading that WN65 departs at 01:37 and seeing that
 the aircraft never recovers before it overnights.
@@ -790,7 +792,7 @@ notes below the chart.
 
 **Why.** A swap does not recover 565 minutes from the operation. It moves them: the displaced
 aircraft picks up the original's line of flying, and this diff does not re-project that. The
-engine was always honest about it -- `available_tails` and the warnings say so in words -- but a
+engine was always honest about it, since `available_tails` and the warnings say so in words, but a
 48-pixel "100%" above a caveat four scrolls away is not a qualified claim, it is an unqualified
 one with a footnote. Naming the scope inside the label costs nothing and removes the only number
 on this screen that a domain expert could have called out as overstated.
@@ -809,7 +811,7 @@ mount, and ignored if the deployment does not hold the day asked for.
 **Rejected.** Component state only; `pushState` per selection.
 
 **Why.** A finding that cannot be sent to someone else is a finding for one person. "Look at the
-WN3665 cascade on the third" should be a link, not a sequence of clicks to reproduce -- and for a
+WN3665 cascade on the third" should be a link, not a sequence of clicks to reproduce, and for a
 tool whose entire argument is that a specific delay is worth acting on, being unable to point at
 one is a functional gap rather than a nicety. `replaceState` because paging down a ranked list
 should not fill the back button with twelve entries.
@@ -837,7 +839,7 @@ promise it replaced, in both directions:
 
 - Two of the sources **corroborate the mechanics**. The BTS on-time reporting directive specifies
   late-aircraft attribution in terms of the previous flight's delay bounded by scheduled ground
-  time and allotted turn time -- which is `projected_dep = max(sched_dep, projected_arr +
+  time and allotted turn time, which is `projected_dep = max(sched_dep, projected_arr +
   min_turn)`, arrived at independently here. IATA AHM 730 codes rotation delay as **93 (RA)**
   inside the *reactionary* block, and carries **09 (SG)** for ground time below declared minimum
   turn. The root-versus-consequence exclusion and the absorption model are both industry
@@ -852,7 +854,7 @@ Writing that second bullet down is the point of this entry. The project's defens
 narrower than the one it started with: a checkable implementation of a specified mechanic, and a
 measurement that contradicted its own premise. Not evidence of a need.
 
-D1's other obligations -- primary sources, a persona never presented as a customer -- stand and
+D1's other obligations (primary sources, a persona never presented as a customer) stand and
 are discharged. The reversibility list under "What discovery could still reverse" stays as
 written, now describing work that is open rather than work that is scheduled.
 
@@ -906,6 +908,96 @@ definition and therefore a future silent divergence. `tests/test_compare_months.
 select the same flights rather than the same count.
 
 **Date.** 2026-08-10 (M4, revisited).
+
+## D48. The first live eval run found a grader bug, and the fix is narrow on purpose
+
+**Decision.** Unescape markdown before matching anything against an answer, so a cited object id
+counts whether it was written in prose or inside a table. Nothing else about the graders changed,
+and in particular the citation requirement itself was not relaxed.
+
+**Rejected.** Publishing the 0/10 the broken grader produced. Accepting `WN3851` as a citation of
+`2026-01-03|WN|3851|PHX|SFO|0855`. Instructing the agents not to use tables, which would fix the
+score by constraining the answer rather than by fixing the check.
+
+**Why.** The first question run live came back 0/1 for both agents, and both failure messages
+said the same thing: no ids cited. Both answers had in fact cited every id required. Flight ids
+are pipe-delimited, both models chose to lay their citations out in a markdown table, and a raw
+pipe inside a table cell splits the cell, so both wrote `2026-01-03\|WN\|3851\|PHX\|SFO\|0855`.
+The grader compared literal substrings and saw nothing.
+
+That is a bug in the check, not a property of the answers, and this file already committed to
+that reading: the module docstring says "a check that its hand-verified answer cannot pass is a
+bug in the check". The reference answers passed only because they are stored as prose and never
+went through a model that formats.
+
+Changing a grader after seeing a score is the exact move that makes an eval untrustworthy, so
+the boundary matters. What was wrong was the comparison, not the requirement. An id present in
+the answer for a reader to check satisfies the requirement, and `\|` is the same id. Widening
+the check to accept `WN3851` would have been the other thing, and was rejected: citability is the
+property this eval exists to measure, and the ontology agent cites full ids precisely because its
+tools hand them over while the SQL baseline is thinking in table rows.
+
+**What it cost to find, and what it caught.** One question, $0.29 across both agents, run as a
+deliberate calibration before committing to the other nine. It caught a bug that would have
+published a 0/10 for two agents that had answered correctly.
+
+`tests/test_agents.py::test_ids_still_count_when_markdown_escaped` re-grades all ten reference
+answers with every pipe escaped, so the bug cannot return quietly.
+
+**What it did not excuse.** After the fix the ontology agent passes that question and the SQL
+baseline still fails it, because the baseline referred to the root leg as "WN3851" throughout
+and never wrote its object id. That failure is real and is reported as one.
+
+**Date.** 2026-08-14 (M6, first live run).
+
+## D49. The row-cap question stays in the eval set, and the cost gap is reported as one question
+
+**Decision.** Publish 9/10 for the ontology agent and 8/10 for the SQL baseline, with
+cost-per-answer alongside, from a single live run with no retries. Keep `cancellations-by-reason`
+in the set. Report the cost premium both ways: headline per-answer cost, and per-answer cost with
+that one question removed from both sides.
+
+**Rejected.** Re-running the questions that failed. Dropping `cancellations-by-reason` now that
+it is the ontology agent's only loss. Adding a `count` tool mid-run so the agent could pass it.
+Reporting only the headline $0.262 against $0.159, which reads as a standing tax on the object
+layer and is not what the numbers say.
+
+**Why.** The set was fixed in advance and two questions were put in it specifically because they
+could embarrass the object layer. One of them did. Removing a question after watching it fail is
+the failure mode that makes a self-graded eval worthless, and it would remove the only result in
+the run that was predicted in writing beforehand.
+
+The cost figures need the second cut to be honest in the other direction. Headline, the baseline
+looks 39% cheaper per answer. Take `cancellations-by-reason` out of both and the ontology agent
+costs $0.165 per answer against the baseline's $0.173, which is a wash. The entire premium is one
+question where the agent burned 38 tool calls and $1.14 paging a 106-row count through a 40-row
+cap, and still could not answer it, against $0.04 and one `GROUP BY` for SQL. Quoting only the
+headline would overstate a general cost of the ontology; quoting only the adjusted figure would
+hide a real ceiling. Both go in.
+
+**What the run actually settled.** The two agents fail in different places, and the difference is
+the project's argument rather than a scoreboard. The object layer's loss is arithmetic it cannot
+reach past its own row cap. Both baseline losses are citation: on `cascade-projection` it computed
+the cascade correctly and called the root "WN3851" without ever writing its id, and on
+`rotation-traversal` it listed all seven legs correctly and never named the tail the question was
+about. Neither was a wrong answer. Both were unfalsifiable ones, which is the thing the ontology
+was supposed to prevent, and did.
+
+**The obvious fix is named, not taken.** A `count_objects` tool would close the one gap. It is not
+in this milestone because adding a tool in response to a failed eval question, in the same session
+that discovered it, is how a benchmark stops measuring anything.
+
+**A third thing the run exposed, in the replay harness rather than in the scores.** All ten
+ontology transcripts re-execute byte for byte against a fresh store. Two of the baseline's do not,
+because the model wrote `ORDER BY n DESC LIMIT 8` over a column with ties at the boundary, and a
+`string_agg` with no ordering inside it. Neither result set is reproducible. The replay test now
+re-runs a disagreeing query and fails only when a query is stable across two fresh runs and still
+disagrees with its recording, so query non-determinism is not misreported as a regression here.
+The asymmetry itself is worth stating: the ontology tools decide their own ordering, so answers
+built on them can be re-derived exactly. That is the auditability argument the citation
+requirement makes, arriving from a different direction.
+
+**Date.** 2026-08-14 (M6).
 
 ## Deployed
 

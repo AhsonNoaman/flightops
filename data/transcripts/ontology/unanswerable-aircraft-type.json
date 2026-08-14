@@ -1,0 +1,122 @@
+{
+  "question_id": "unanswerable-aircraft-type",
+  "question": "What aircraft type operated flight 3851 PHX-SFO on 2026-01-03, and how many passengers had to be rebooked because of the delay?",
+  "agent": "ontology",
+  "model": "claude-opus-5",
+  "recorded_at": "2026-08-14T19:02:21+00:00",
+  "turns": [
+    {
+      "content": [
+        {
+          "signature": "CAISlgMKhwEIEBgCKkAREBogISKhZL6SsKI14QsX+G2i6j3Lqf1/ZcmhvQP4YvR3l4CbkS4HyhE6FHBclUkgp6v3NpL/jCsXaYs3nlUsMg1jbGF1ZGUtb3B1cy01OAFCCHRoaW5raW5nWiQ0YTczZGI2MS1iMTJkLTQ0YmQtODY2Ni01OGE4MDIzZmVjNzQSDBHd8EtYJLOfb0VZoRoMiE4ny+q/WKBZjLg4IjCh8/ilWolxPuFUviQAIXihWifu/O90TiXJ/KFqN9pYoRq1fVpE6vujbidpvMyIUS4quwH+4Nu6ammj1Ou6Sj0gWsieaXMvhr1urMLmpCpywt9ia3fVG1D0w+koFucRPkSsjGUpXubTKOkI5Etvp/ZtYP11b2qr7l4wZS0gqxQGFSqzV+lshKZAAPgblgYg+W28b2/z3nyFXT+lSedc2a4BVKrMt/vA4zFVWOJW9cxA6KLBiTXjVEctDhYSMopv3G8ptaOODvlNzQLnK14cFfQV0dGp5oh+ymZ/C0fFZFOwgQEVraaATrd6BgxVyjmfGAE=",
+          "thinking": "",
+          "type": "thinking"
+        },
+        {
+          "id": "toolu_01HddzxMh3SntTtgwq2LiwL1",
+          "caller": {
+            "type": "direct"
+          },
+          "input": {
+            "object_type": "flight",
+            "flight_id": "2026-01-03|WN|3851|PHX|SFO|0855"
+          },
+          "name": "find_objects",
+          "type": "tool_use"
+        },
+        {
+          "id": "toolu_011hHFzse3d3FvMTwRY2jUYm",
+          "caller": {
+            "type": "direct"
+          },
+          "input": {
+            "object_type": "flight",
+            "carrier": "WN",
+            "origin": "PHX",
+            "destination": "SFO",
+            "flight_date": "2026-01-03"
+          },
+          "name": "find_objects",
+          "type": "tool_use"
+        }
+      ],
+      "stop_reason": "tool_use",
+      "input_tokens": 122,
+      "output_tokens": 299
+    },
+    {
+      "content": [
+        {
+          "signature": "CAISywIKhwEIEBgCKkBHIh88kACks2R7Q+MtcbZ5ntb1ZDpI0hkQrb4v/FwBpZhEBv95TDMJCEzXvPsRfL7pWiGs3GlEKOe8NKc72+7IMg1jbGF1ZGUtb3B1cy01OAFCCHRoaW5raW5nWiQ0YTczZGI2MS1iMTJkLTQ0YmQtODY2Ni01OGE4MDIzZmVjNzQSDIQTsoAWtTYaGrAZjhoME9bFGyRVN+VdNfCxIjAT3OV5W77ysY8aa2Xapm3//2vSrur89Xq1Vp0J2vqMbsVSlnDqNDAW5JxA3I+JH+AqcSbtGVxrnbu6xVTK1Kwablj6hTDRJctS91H0t2zf2es8r0VYd3jclxDwnDSyNhgLb4olHiqM8Z4UT9RYo7xiJBpnz/bWKsMtltkNsRzYj1oBFddr04BmRF543iBqalkcGHOmUJKMgDAj2Zmm99BcDHEDGAE=",
+          "thinking": "",
+          "type": "thinking"
+        },
+        {
+          "id": "toolu_01VUC1sYqs9HB28rYztDwie5",
+          "caller": {
+            "type": "direct"
+          },
+          "input": {
+            "object_type": "aircraft",
+            "object_id": "N8633A"
+          },
+          "name": "find_objects",
+          "type": "tool_use"
+        }
+      ],
+      "stop_reason": "tool_use",
+      "input_tokens": 1989,
+      "output_tokens": 110
+    },
+    {
+      "content": [
+        {
+          "text": "Neither of those two things is in this extract, so I can't answer either question as asked.\n\n**Aircraft type: not available.** The flight is there \u2014 `2026-01-03|WN|3851|PHX|SFO|0855`, operated by tail **N8633A** \u2014 but the aircraft object carries only the tail number and the carrier (`{tail_number: N8633A, carrier: WN}`). The BTS On-Time Performance extract has no fleet or equipment field, so no type, variant, or seat count. To get it you'd need to join the tail number against an external registry (FAA N-number registry) or the carrier's fleet list.\n\n**Passengers rebooked: not available.** There is no passenger, booking, or connection data of any kind in this extract, so the number rebooked cannot be derived, estimated, or bounded. That would require the carrier's PNR/reaccommodation records.\n\nWhat I can tell you about the delay itself: WN3851 pushed back **142 minutes late** and arrived **141 minutes late** into SFO, and the carrier attributed the entire arrival delay to **NAS (141 minutes)** \u2014 nothing to carrier, weather, security, or late aircraft. That attribution means the aircraft was not the cause; N8633A arrived in time for the turn, and the hold was air-traffic/airport-capacity driven. Note SFO was having a bad day generally on the 3rd: the 18:40 PHX-SFO leg (`2026-01-03|WN|4124|PHX|SFO|1840`, N8747Q) went out 343 late and arrived 357 late, again almost entirely NAS (348), and the 22:50 leg (`2026-01-03|WN|3026|PHX|SFO|2250`) arrived 111 late.",
+          "type": "text"
+        }
+      ],
+      "stop_reason": "end_turn",
+      "input_tokens": 2139,
+      "output_tokens": 568
+    }
+  ],
+  "tool_calls": [
+    {
+      "name": "find_objects",
+      "arguments": {
+        "object_type": "flight",
+        "flight_id": "2026-01-03|WN|3851|PHX|SFO|0855"
+      },
+      "result": "{\"results\": [{\"flight_id\": \"2026-01-03|WN|3851|PHX|SFO|0855\", \"describes_as\": \"WN3851 PHX-SFO 08:55 2026-01-03\", \"carrier\": \"WN\", \"flight_number\": \"3851\", \"origin\": \"PHX\", \"destination\": \"SFO\", \"tail_number\": \"N8633A\", \"status\": \"arrived\", \"flight_date\": \"2026-01-03\", \"sched_dep_utc\": \"2026-01-03T15:55:00+00:00\", \"sched_arr_utc\": \"2026-01-03T18:05:00+00:00\", \"sched_dep_local\": \"08:55\", \"sched_block_minutes\": 130, \"dep_delay_minutes\": 142, \"arr_delay_minutes\": 141, \"delay_causes_minutes\": {\"carrier\": 0, \"weather\": 0, \"nas\": 141, \"security\": 0, \"late_aircraft\": 0}}], \"count\": 1}",
+      "is_error": false
+    },
+    {
+      "name": "find_objects",
+      "arguments": {
+        "object_type": "flight",
+        "carrier": "WN",
+        "origin": "PHX",
+        "destination": "SFO",
+        "flight_date": "2026-01-03"
+      },
+      "result": "{\"results\": [{\"flight_id\": \"2026-01-03|WN|3851|PHX|SFO|0855\", \"describes_as\": \"WN3851 PHX-SFO 08:55 2026-01-03\", \"carrier\": \"WN\", \"flight_number\": \"3851\", \"origin\": \"PHX\", \"destination\": \"SFO\", \"tail_number\": \"N8633A\", \"status\": \"arrived\", \"flight_date\": \"2026-01-03\", \"sched_dep_utc\": \"2026-01-03T15:55:00+00:00\", \"sched_arr_utc\": \"2026-01-03T18:05:00+00:00\", \"sched_dep_local\": \"08:55\", \"sched_block_minutes\": 130, \"dep_delay_minutes\": 142, \"arr_delay_minutes\": 141, \"delay_causes_minutes\": {\"carrier\": 0, \"weather\": 0, \"nas\": 141, \"security\": 0, \"late_aircraft\": 0}}, {\"flight_id\": \"2026-01-03|WN|556|PHX|SFO|1305\", \"describes_as\": \"WN556 PHX-SFO 13:05 2026-01-03\", \"carrier\": \"WN\", \"flight_number\": \"556\", \"origin\": \"PHX\", \"destination\": \"SFO\", \"tail_number\": \"N8763L\", \"status\": \"arrived\", \"flight_date\": \"2026-01-03\", \"sched_dep_utc\": \"2026-01-03T20:05:00+00:00\", \"sched_arr_utc\": \"2026-01-03T22:15:00+00:00\", \"sched_dep_local\": \"13:05\", \"sched_block_minutes\": 130, \"dep_delay_minutes\": 32, \"arr_delay_minutes\": 25, \"delay_causes_minutes\": {\"carrier\": 25, \"weather\": 0, \"nas\": 0, \"security\": 0, \"late_aircraft\": 0}}, {\"flight_id\": \"2026-01-03|WN|4124|PHX|SFO|1840\", \"describes_as\": \"WN4124 PHX-SFO 18:40 2026-01-03\", \"carrier\": \"WN\", \"flight_number\": \"4124\", \"origin\": \"PHX\", \"destination\": \"SFO\", \"tail_number\": \"N8747Q\", \"status\": \"arrived\", \"flight_date\": \"2026-01-03\", \"sched_dep_utc\": \"2026-01-04T01:40:00+00:00\", \"sched_arr_utc\": \"2026-01-04T03:45:00+00:00\", \"sched_dep_local\": \"18:40\", \"sched_block_minutes\": 125, \"dep_delay_minutes\": 343, \"arr_delay_minutes\": 357, \"delay_causes_minutes\": {\"carrier\": 0, \"weather\": 0, \"nas\": 348, \"security\": 0, \"late_aircraft\": 9}}, {\"flight_id\": \"2026-01-03|WN|3026|PHX|SFO|2250\", \"describes_as\": \"WN3026 PHX-SFO 22:50 2026-01-03\", \"carrier\": \"WN\", \"flight_number\": \"3026\", \"origin\": \"PHX\", \"destination\": \"SFO\", \"tail_number\": \"N8619F\", \"status\": \"arrived\", \"flight_date\": \"2026-01-03\", \"sched_dep_utc\": \"2026-01-04T05:50:00+00:00\", \"sched_arr_utc\": \"2026-01-04T07:55:00+00:00\", \"sched_dep_local\": \"22:50\", \"sched_block_minutes\": 125, \"dep_delay_minutes\": 103, \"arr_delay_minutes\": 111, \"delay_causes_minutes\": {\"carrier\": 101, \"weather\": 0, \"nas\": 8, \"security\": 0, \"late_aircraft\": 2}}], \"count\": 4}",
+      "is_error": false
+    },
+    {
+      "name": "find_objects",
+      "arguments": {
+        "object_type": "aircraft",
+        "object_id": "N8633A"
+      },
+      "result": "{\"object_type\": \"Aircraft\", \"tail_number\": \"N8633A\", \"carrier\": \"WN\"}",
+      "is_error": false
+    }
+  ],
+  "answer": "Neither of those two things is in this extract, so I can't answer either question as asked.\n\n**Aircraft type: not available.** The flight is there \u2014 `2026-01-03|WN|3851|PHX|SFO|0855`, operated by tail **N8633A** \u2014 but the aircraft object carries only the tail number and the carrier (`{tail_number: N8633A, carrier: WN}`). The BTS On-Time Performance extract has no fleet or equipment field, so no type, variant, or seat count. To get it you'd need to join the tail number against an external registry (FAA N-number registry) or the carrier's fleet list.\n\n**Passengers rebooked: not available.** There is no passenger, booking, or connection data of any kind in this extract, so the number rebooked cannot be derived, estimated, or bounded. That would require the carrier's PNR/reaccommodation records.\n\nWhat I can tell you about the delay itself: WN3851 pushed back **142 minutes late** and arrived **141 minutes late** into SFO, and the carrier attributed the entire arrival delay to **NAS (141 minutes)** \u2014 nothing to carrier, weather, security, or late aircraft. That attribution means the aircraft was not the cause; N8633A arrived in time for the turn, and the hold was air-traffic/airport-capacity driven. Note SFO was having a bad day generally on the 3rd: the 18:40 PHX-SFO leg (`2026-01-03|WN|4124|PHX|SFO|1840`, N8747Q) went out 343 late and arrived 357 late, again almost entirely NAS (348), and the 22:50 leg (`2026-01-03|WN|3026|PHX|SFO|2250`) arrived 111 late.",
+  "error": null,
+  "usage": {
+    "input_tokens": 4250,
+    "output_tokens": 977,
+    "cost_usd": 0.0457
+  }
+}

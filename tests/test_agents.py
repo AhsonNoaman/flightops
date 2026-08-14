@@ -302,6 +302,19 @@ def test_each_reference_answer_passes_its_own_grader(question: evalset.Question)
     assert grade.passed, grade.failures
 
 
+@pytest.mark.parametrize("question", evalset.QUESTIONS, ids=lambda q: q.question_id)
+def test_ids_still_count_when_markdown_escaped(question: evalset.Question) -> None:
+    """A cited id laid out in a markdown table grades the same as one written in prose.
+
+    Flight ids are pipe-delimited, and a raw pipe inside a table cell splits the cell, so an
+    agent that tabulates its citations has to escape them. Both agents did on the first live
+    run, and the literal substring check scored two correct, fully-cited answers as having
+    cited nothing. This is that bug, held down.
+    """
+    grade = question.grade(question.reference.replace("|", "\\|"))
+    assert grade.passed, grade.failures
+
+
 def test_a_fluent_answer_with_no_ids_fails() -> None:
     """The bias the graders are built with, asserted rather than assumed."""
     question = evalset.BY_ID["cascade-projection"]
@@ -455,6 +468,23 @@ def _recorded_transcripts() -> list[Path]:
     return sorted(TRANSCRIPTS.glob("*/*.json")) if TRANSCRIPTS.exists() else []
 
 
+def _comparable(payload: str) -> object:
+    """A SQL result with its row order normalised away.
+
+    The ontology tools order their own output, so their replay is compared byte for byte. The
+    baseline's queries are written by the model, and several group without an ORDER BY, which
+    leaves row order undefined by SQL itself. Asserting byte equality there asserts something the
+    query never promised. The rows themselves are still compared exactly.
+    """
+    try:
+        parsed = json.loads(payload)
+    except json.JSONDecodeError:
+        return payload
+    if isinstance(parsed, dict) and isinstance(parsed.get("rows"), list):
+        parsed["rows"] = sorted(parsed["rows"], key=lambda row: json.dumps(row, sort_keys=True))
+    return parsed
+
+
 @pytest.mark.skipif(
     not _recorded_transcripts(),
     reason="no transcripts committed yet; run scripts/run_eval.py with an API key",
@@ -466,6 +496,16 @@ def test_recorded_tool_calls_still_return_what_was_recorded(path: Path, database
     Scenario state is rebuilt in recording order, which is why the whole transcript is replayed
     rather than each call in isolation: a swap only reproduces its recorded diff if the delay
     that preceded it in the same scenario has been applied first.
+
+    The two agents are held to different standards, for a reason that is a finding rather than a
+    convenience. The ontology tools decide their own ordering, so a recorded result must come back
+    byte for byte. The baseline's tool runs whatever SQL the model wrote, and the model wrote some
+    queries that are not reproducible: `ORDER BY n DESC LIMIT 8` over a column with ties at the
+    boundary does not define which eight rows come back, and `string_agg` without an ORDER BY
+    inside it does not define the order within the string. A differing result there is a property
+    of the query, not a regression in this repository, so the query is re-run and the two fresh
+    results compared against each other. Only a query that is stable on re-run and disagrees with
+    the recording counts as a regression.
     """
     transcript = loop.Transcript.read(path)
     with ObjectStore(database) as store:
@@ -482,11 +522,19 @@ def test_recorded_tool_calls_still_return_what_was_recorded(path: Path, database
         else:
             with baseline.SqlBaseline(database) as sql:
                 execute = sql.executor()
-                for call in transcript.tool_calls:
+
+                def run(call: loop.ToolCall) -> tuple[str, bool]:
                     try:
-                        replayed = json.dumps(execute(call.name, call.arguments), default=str)
-                        errored = False
+                        return json.dumps(execute(call.name, call.arguments), default=str), False
                     except ToolFailure as failure:
-                        replayed, errored = str(failure), True
+                        return str(failure), True
+
+                for call in transcript.tool_calls:
+                    replayed, errored = run(call)
                     assert errored == call.is_error, f"{call.name} changed error status"
-                    assert replayed == call.result, f"{call.name} changed its result"
+                    if _comparable(replayed) == _comparable(call.result):
+                        continue
+                    again, _ = run(call)
+                    assert _comparable(again) != _comparable(replayed), (
+                        f"{call.name} is reproducible and changed its result since it was recorded"
+                    )

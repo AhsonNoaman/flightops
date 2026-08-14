@@ -4,7 +4,7 @@
 
 Ten operational questions with hand-verified answers, asked of two agents over the same data: the ontology agent, which has `find_objects`, `traverse_links` and `simulate_action`; and a SQL baseline, which has the schema, the derived rotation tables, the projection formula, and one read-only `SELECT` tool. Same model, same preamble, same row cap.
 
-Every expected value below was computed against the committed sample (`data/sample/bts_wn_2026_01_w1.csv.gz`: Southwest, 2026-01-01 to 2026-01-07, 26,161 flights). Grading is programmatic -- cited ids, numeric values, required and forbidden phrasings -- not an LLM judge.
+Every expected value below was computed against the committed sample (`data/sample/bts_wn_2026_01_w1.csv.gz`: Southwest, 2026-01-01 to 2026-01-07, 26,161 flights). Grading is programmatic rather than an LLM judge: cited ids, numeric values, required and forbidden phrasings.
 
 Scores and transcripts: `python scripts/run_eval.py --replay`, and `data/transcripts/`.
 
@@ -12,7 +12,7 @@ Scores and transcripts: `python scripts/run_eval.py --replay`, and `data/transcr
 
 **Asked:** Southwest flight 3851 from PHX to SFO on 2026-01-03 pushed back late. How late was the departure, and what did the carrier attribute the delay to?
 
-**Hand-verified answer:** 2026-01-03|WN|3851|PHX|SFO|0855 pushed back 142 minutes late and arrived 141 minutes late. The whole of the attributed delay is NAS (national air system) -- 141 minutes, with nothing recorded against carrier, weather, security or late aircraft. The aircraft was N8633A.
+**Hand-verified answer:** 2026-01-03|WN|3851|PHX|SFO|0855 pushed back 142 minutes late and arrived 141 minutes late. The whole of the attributed delay is NAS (national air system): 141 minutes, with nothing recorded against carrier, weather, security or late aircraft. The aircraft was N8633A.
 
 **Verified by:** `store.get_flight(ROOT) -> dep_delay_minutes, arr_delay_minutes, causes`
 
@@ -48,7 +48,7 @@ Scores and transcripts: `python scripts/run_eval.py --replay`, and `data/transcr
 
 **Asked:** Does WN1016 from BWI to RSW on 2026-01-07 have a following leg on the same aircraft? If not, why does the rotation stop there?
 
-**Hand-verified answer:** No. 2026-01-07|WN|1016|BWI|RSW|1430 has no next leg. Tail N247WN's next recorded RSW departure is WN120 RSW-MKE at 20:05 UTC, but WN1016 is not scheduled to arrive at RSW until 22:20 UTC -- 135 minutes after that departure. The rotation link is therefore not built, and the break is recorded as an impossible turn: the two legs cannot be the same aircraft as scheduled, so this is a tail-assignment artefact in the source data rather than a real connection.
+**Hand-verified answer:** No. 2026-01-07|WN|1016|BWI|RSW|1430 has no next leg. Tail N247WN's next recorded RSW departure is WN120 RSW-MKE at 20:05 UTC, but WN1016 is not scheduled to arrive at RSW until 22:20 UTC, 135 minutes after that departure. The rotation link is therefore not built, and the break is recorded as an impossible turn: the two legs cannot be the same aircraft as scheduled, so this is a tail-assignment artefact in the source data rather than a real connection.
 
 **Verified by:** `store.chain_break_after(...) -> impossible_turn, gap_minutes -135`
 
@@ -72,7 +72,7 @@ Scores and transcripts: `python scripts/run_eval.py --replay`, and `data/transcr
 
 **Asked:** Across the whole week in this data, which departure was the latest, and what was it blamed on?
 
-**Hand-verified answer:** 2026-01-01|WN|4285|SDF|BWI|0540 -- WN4285 SDF-BWI, scheduled 05:40 -- departed 692 minutes late. 677 of those minutes are attributed to the carrier. The aircraft was N291WN and its next leg was WN1732 BWI-MCI the same evening.
+**Hand-verified answer:** 2026-01-01|WN|4285|SDF|BWI|0540, WN4285 SDF-BWI scheduled 05:40, departed 692 minutes late. 677 of those minutes are attributed to the carrier. The aircraft was N291WN and its next leg was WN1732 BWI-MCI the same evening.
 
 **Verified by:** `ORDER BY dep_delay_minutes DESC LIMIT 1 over the sample`
 
@@ -84,7 +84,7 @@ Scores and transcripts: `python scripts/run_eval.py --replay`, and `data/transcr
 
 **Asked:** WN4303 SFO-DEN on 2026-01-03 left 362 minutes late, and BTS blames 338 of that on a late inbound aircraft. Which inbound was it, and how far back can you trace the delay?
 
-**Hand-verified answer:** The inbound was 2026-01-03|WN|4124|PHX|SFO|1840, same tail N8747Q, which arrived 357 minutes late with 348 minutes attributed to NAS. The trace stops there: the rotation link into WN4124 does not exist, because the aircraft's preceding leg WN2601 DEN-PHX is recorded as an impossible turn -- it is scheduled to arrive at PHX at 02:50 UTC, 70 minutes after WN4124 is scheduled to leave PHX. So the furthest verifiable root is an NAS delay at PHX on WN4124.
+**Hand-verified answer:** The inbound was 2026-01-03|WN|4124|PHX|SFO|1840, same tail N8747Q, which arrived 357 minutes late with 348 minutes attributed to NAS. The trace stops there: the rotation link into WN4124 does not exist, because the aircraft's preceding leg WN2601 DEN-PHX is recorded as an impossible turn: it is scheduled to arrive at PHX at 02:50 UTC, 70 minutes after WN4124 is scheduled to leave PHX. So the furthest verifiable root is an NAS delay at PHX on WN4124.
 
 **Verified by:** `traverse previous_leg from 2026-01-03|WN|4303|SFO|DEN|2025; previous_leg of WN4124 is absent, chain_breaks records impossible_turn on WN2601 with gap -70`
 
@@ -108,7 +108,7 @@ Scores and transcripts: `python scripts/run_eval.py --replay`, and `data/transcr
 
 **Asked:** Same aircraft, same day: if flight 3851 PHX-SFO on 2026-01-03 were only 20 minutes late instead of 142, how far down N8633A's day would that propagate?
 
-**Hand-verified answer:** Barely at all. One leg is touched -- 2026-01-03|WN|4106|SFO|PHX|1055, which goes 5 minutes late -- and the scheduled ground time at PHX absorbs the rest. Nothing after that moves. A 10-minute delay propagates nothing at all.
+**Hand-verified answer:** Barely at all. One leg is touched, 2026-01-03|WN|4106|SFO|PHX|1055, which goes 5 minutes late, and the scheduled ground time at PHX absorbs the rest. Nothing after that moves. A 10-minute delay propagates nothing at all.
 
 **Verified by:** `delay_flight(scenario, ROOT, 20) -> net_minutes 5 over 1 affected leg; the same call with 10 minutes returns 0 legs`
 
@@ -120,7 +120,7 @@ Scores and transcripts: `python scripts/run_eval.py --replay`, and `data/transcr
 
 **Asked:** What aircraft type operated flight 3851 PHX-SFO on 2026-01-03, and how many passengers had to be rebooked because of the delay?
 
-**Hand-verified answer:** Neither is answerable from this data. BTS On-Time Performance records the tail number -- N8633A -- but not the aircraft type; the type would have to come from the FAA registry, looked up by that tail. Passenger counts and rebookings are not in the dataset in any form; they would come from the airline's own reservation system. The delay itself is known: 142 minutes.
+**Hand-verified answer:** Neither is answerable from this data. BTS On-Time Performance records the tail number, N8633A, but not the aircraft type; the type would have to come from the FAA registry, looked up by that tail. Passenger counts and rebookings are not in the dataset in any form; they would come from the airline's own reservation system. The delay itself is known: 142 minutes.
 
 **Verified by:** `The BTS On-Time Performance schema has no aircraft-type or passenger columns; the ingested tables carry neither.`
 

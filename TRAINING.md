@@ -81,8 +81,9 @@ underlying record is never touched, and closing the tab throws your changes away
 
 **It over-predicts.** Checked against the day's own records, it is about five minutes on the
 high side for one carrier's week, and between seven and fourteen across a full month depending
-on the month. It is always in the direction of predicting more delay than was attributed. Two reasons: crews routinely beat the scheduled block time, and the recorded day
-already includes whatever somebody did about the problem. A cascade the tool shows you that never
+on the month. It always errs toward predicting more delay than was actually attributed. Two
+reasons: crews routinely beat the scheduled block time, and the recorded day already includes
+whatever somebody did about the problem. A cascade the tool shows you that never
 happened is often a cascade a controller prevented. That is the tool doing its job, not failing
 at it.
 
@@ -104,7 +105,8 @@ the tool has no opinion about which.
 ## The question box
 
 If the box on the right is greyed out, live question-answering is switched off on this
-deployment, because it costs money per question and the page is public. Underneath it are ten questions
+deployment, because it costs money per question and the page is public. Underneath it are ten
+questions
 that were asked and answered, with the correct answer worked out by hand beforehand, so you can
 see what the thing does and does not get right without anyone paying for it.
 

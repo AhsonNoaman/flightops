@@ -1,0 +1,128 @@
+{
+  "question_id": "cancellations-by-reason",
+  "question": "How many flights were cancelled across the week in this data, and what was the most common reason?",
+  "agent": "sql",
+  "model": "claude-opus-5",
+  "recorded_at": "2026-08-14T19:07:22+00:00",
+  "turns": [
+    {
+      "content": [
+        {
+          "text": "I'll query the cancellation counts by code.",
+          "type": "text"
+        },
+        {
+          "id": "toolu_019gf6JkUk9X3ihFaw7A8pcL",
+          "caller": {
+            "type": "direct"
+          },
+          "input": {
+            "sql": "SELECT count(*) AS total_flights, count(*) FILTER (WHERE status='cancelled') AS cancelled FROM flights"
+          },
+          "name": "run_sql",
+          "type": "tool_use"
+        },
+        {
+          "id": "toolu_01B4VSkuEa2WAkwTY9nzr7Zm",
+          "caller": {
+            "type": "direct"
+          },
+          "input": {
+            "sql": "SELECT cancellation_code, count(*) AS n FROM flights WHERE status='cancelled' GROUP BY 1 ORDER BY n DESC"
+          },
+          "name": "run_sql",
+          "type": "tool_use"
+        }
+      ],
+      "stop_reason": "tool_use",
+      "input_tokens": 98,
+      "output_tokens": 207
+    },
+    {
+      "content": [
+        {
+          "signature": "CAISlwQKhwEIEBgCKkAhEAFAw2cUL2tAh7crDexvVpbb7d6wsJUHN0XqRxoJo6o09og5ydxBzY6qfeaMerc83N8zoQ095r893ZN8uHnqMg1jbGF1ZGUtb3B1cy01OAFCCHRoaW5raW5nWiQ0YTczZGI2MS1iMTJkLTQ0YmQtODY2Ni01OGE4MDIzZmVjNzQSDN1Tda8lrkYhlPXiDxoMK5e8wypDeKG7xV0QIjA88KGRQ+BL+wgIkIFlxnUgtpRFj+mHYv6D4iuQ1x9QPop5VHtgPDHcG0au++KJYnYqvAJLss3lKw+ICRC6sacmMHfuNLDXKJJ/MSPc29ORVwOiPA204XIQuuwJZ/rMNoxJP+vIXLFY8A8OvqpY3Dxj4E77VnzkLrUfrazxHZBmrl3KlLPoGKzEb9R9UXZiAF4xJPkHZtSNyOTW78N7gda0x+kmIDaqoeego9Cpt1oWdMZ8WJSnz0ZMnMGmAC/PIGoVli7ahDcG1ypYynqiRnp+XPQfcNqvbxT6BaX6FS9tvNMmTbdmUbRpzfFrktMyefgEL3OREftQgm+JcrY0xXwmSIUH/zC5HuqBS+osd/oAGtL9BcUvYl+DdBLBkXehThSyTuL4bE8YhVqFeDF9WQ90P8ioGwPjUz4hl1qg/YK+mYr2sB30/yRCIXPy2VC+1zCu1AgP5t/jJ/v6d1cGbZYf2z9gLU6ckT+9ct78HfsMGAE=",
+          "thinking": "",
+          "type": "thinking"
+        },
+        {
+          "id": "toolu_011vpZHDvJTsegJMznKT2sbS",
+          "caller": {
+            "type": "direct"
+          },
+          "input": {
+            "sql": "SELECT flight_date, count(*) n, count(*) FILTER (WHERE cancellation_code='C') nas, count(*) FILTER (WHERE cancellation_code='B') wx, count(*) FILTER (WHERE cancellation_code='A') carrier FROM flights WHERE status='cancelled' GROUP BY 1 ORDER BY 1"
+          },
+          "name": "run_sql",
+          "type": "tool_use"
+        },
+        {
+          "id": "toolu_0135tcX16uygn5XRJUGcDCMP",
+          "caller": {
+            "type": "direct"
+          },
+          "input": {
+            "sql": "SELECT origin, count(*) n, string_agg(DISTINCT cancellation_code,',') codes FROM flights WHERE status='cancelled' GROUP BY 1 ORDER BY n DESC LIMIT 8"
+          },
+          "name": "run_sql",
+          "type": "tool_use"
+        }
+      ],
+      "stop_reason": "tool_use",
+      "input_tokens": 504,
+      "output_tokens": 426
+    },
+    {
+      "content": [
+        {
+          "text": "106 WN flights cancelled out of 26,161 scheduled in the 1\u20137 Jan window, or 0.41%.\n\nThe dominant reason is national airspace system (code C), 65 cancellations \u2014 61% of the total. Weather (code B) is second with 27, and carrier (code A) third with 14. No security cancellations.\n\nTwo dates carry almost the whole week:\n\n- **3 Jan \u2014 55 cancellations, 52 of them NAS.** This is the single worst day and effectively defines the \"most common reason\" answer; strip this day out and NAS falls to 13 for the rest of the week.\n- **1 Jan \u2014 29 cancellations, 25 of them weather.** Nearly all of the week's weather cancellations land on New Year's Day.\n\nThe remaining five days total 22 cancellations combined, and 6\u20137 Jan are clean (3 and 1, all carrier-coded).\n\nBy station, the concentration is SAN with 19 (mix of B and C), SJU with 18 (all C), and PSP with 9. SJU being entirely NAS-coded on a single-cause basis is consistent with a routing or airspace constraint rather than local weather, but the extract carries no weather or ATC-advisory data, so I can't confirm the underlying driver \u2014 only how the carrier coded it.",
+          "type": "text"
+        }
+      ],
+      "stop_reason": "end_turn",
+      "input_tokens": 1585,
+      "output_tokens": 418
+    }
+  ],
+  "tool_calls": [
+    {
+      "name": "run_sql",
+      "arguments": {
+        "sql": "SELECT count(*) AS total_flights, count(*) FILTER (WHERE status='cancelled') AS cancelled FROM flights"
+      },
+      "result": "{\"columns\": [\"total_flights\", \"cancelled\"], \"rows\": [{\"total_flights\": 26161, \"cancelled\": 106}], \"row_count\": 1}",
+      "is_error": false
+    },
+    {
+      "name": "run_sql",
+      "arguments": {
+        "sql": "SELECT cancellation_code, count(*) AS n FROM flights WHERE status='cancelled' GROUP BY 1 ORDER BY n DESC"
+      },
+      "result": "{\"columns\": [\"cancellation_code\", \"n\"], \"rows\": [{\"cancellation_code\": \"C\", \"n\": 65}, {\"cancellation_code\": \"B\", \"n\": 27}, {\"cancellation_code\": \"A\", \"n\": 14}], \"row_count\": 3}",
+      "is_error": false
+    },
+    {
+      "name": "run_sql",
+      "arguments": {
+        "sql": "SELECT flight_date, count(*) n, count(*) FILTER (WHERE cancellation_code='C') nas, count(*) FILTER (WHERE cancellation_code='B') wx, count(*) FILTER (WHERE cancellation_code='A') carrier FROM flights WHERE status='cancelled' GROUP BY 1 ORDER BY 1"
+      },
+      "result": "{\"columns\": [\"flight_date\", \"n\", \"nas\", \"wx\", \"carrier\"], \"rows\": [{\"flight_date\": \"2026-01-01\", \"n\": 29, \"nas\": 1, \"wx\": 25, \"carrier\": 3}, {\"flight_date\": \"2026-01-02\", \"n\": 3, \"nas\": 1, \"wx\": 0, \"carrier\": 2}, {\"flight_date\": \"2026-01-03\", \"n\": 55, \"nas\": 52, \"wx\": 1, \"carrier\": 2}, {\"flight_date\": \"2026-01-04\", \"n\": 11, \"nas\": 9, \"wx\": 1, \"carrier\": 1}, {\"flight_date\": \"2026-01-05\", \"n\": 4, \"nas\": 2, \"wx\": 0, \"carrier\": 2}, {\"flight_date\": \"2026-01-06\", \"n\": 3, \"nas\": 0, \"wx\": 0, \"carrier\": 3}, {\"flight_date\": \"2026-01-07\", \"n\": 1, \"nas\": 0, \"wx\": 0, \"carrier\": 1}], \"row_count\": 7}",
+      "is_error": false
+    },
+    {
+      "name": "run_sql",
+      "arguments": {
+        "sql": "SELECT origin, count(*) n, string_agg(DISTINCT cancellation_code,',') codes FROM flights WHERE status='cancelled' GROUP BY 1 ORDER BY n DESC LIMIT 8"
+      },
+      "result": "{\"columns\": [\"origin\", \"n\", \"codes\"], \"rows\": [{\"origin\": \"SAN\", \"n\": 19, \"codes\": \"B,C\"}, {\"origin\": \"SJU\", \"n\": 18, \"codes\": \"C\"}, {\"origin\": \"PSP\", \"n\": 9, \"codes\": \"A,C\"}, {\"origin\": \"MCO\", \"n\": 7, \"codes\": \"C\"}, {\"origin\": \"LAS\", \"n\": 6, \"codes\": \"C,B\"}, {\"origin\": \"SMF\", \"n\": 5, \"codes\": \"A,C,B\"}, {\"origin\": \"SJC\", \"n\": 5, \"codes\": \"C,B,A\"}, {\"origin\": \"BWI\", \"n\": 5, \"codes\": \"A,C\"}], \"row_count\": 8}",
+      "is_error": false
+    }
+  ],
+  "answer": "106 WN flights cancelled out of 26,161 scheduled in the 1\u20137 Jan window, or 0.41%.\n\nThe dominant reason is national airspace system (code C), 65 cancellations \u2014 61% of the total. Weather (code B) is second with 27, and carrier (code A) third with 14. No security cancellations.\n\nTwo dates carry almost the whole week:\n\n- **3 Jan \u2014 55 cancellations, 52 of them NAS.** This is the single worst day and effectively defines the \"most common reason\" answer; strip this day out and NAS falls to 13 for the rest of the week.\n- **1 Jan \u2014 29 cancellations, 25 of them weather.** Nearly all of the week's weather cancellations land on New Year's Day.\n\nThe remaining five days total 22 cancellations combined, and 6\u20137 Jan are clean (3 and 1, all carrier-coded).\n\nBy station, the concentration is SAN with 19 (mix of B and C), SJU with 18 (all C), and PSP with 9. SJU being entirely NAS-coded on a single-cause basis is consistent with a routing or airspace constraint rather than local weather, but the extract carries no weather or ATC-advisory data, so I can't confirm the underlying driver \u2014 only how the carrier coded it.",
+  "error": null,
+  "usage": {
+    "input_tokens": 2187,
+    "output_tokens": 1051,
+    "cost_usd": 0.0372
+  }
+}

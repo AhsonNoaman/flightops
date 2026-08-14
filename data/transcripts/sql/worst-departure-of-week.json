@@ -1,0 +1,133 @@
+{
+  "question_id": "worst-departure-of-week",
+  "question": "Across the whole week in this data, which departure was the latest, and what was it blamed on?",
+  "agent": "sql",
+  "model": "claude-opus-5",
+  "recorded_at": "2026-08-14T19:05:49+00:00",
+  "turns": [
+    {
+      "content": [
+        {
+          "text": "I'll find the flight with the largest departure delay in the week.",
+          "type": "text"
+        },
+        {
+          "id": "toolu_01MDbzDo2viMneefPt9pxVmd",
+          "caller": {
+            "type": "direct"
+          },
+          "input": {
+            "sql": "SELECT flight_id, tail_number, status, dep_delay_minutes, arr_delay_minutes, delay_carrier, delay_weather, delay_nas, delay_security, delay_late_aircraft, sched_dep_local, actual_dep_utc, sched_dep_utc FROM flights ORDER BY dep_delay_minutes DESC NULLS LAST LIMIT 10"
+          },
+          "name": "run_sql",
+          "type": "tool_use"
+        },
+        {
+          "id": "toolu_01EFyDZ4CWm1vVuw2yS7RC6L",
+          "caller": {
+            "type": "direct"
+          },
+          "input": {
+            "sql": "SELECT count(*) n, count(dep_delay_minutes) with_delay, max(dep_delay_minutes) mx FROM flights"
+          },
+          "name": "run_sql",
+          "type": "tool_use"
+        }
+      ],
+      "stop_reason": "tool_use",
+      "input_tokens": 100,
+      "output_tokens": 291
+    },
+    {
+      "content": [
+        {
+          "signature": "CAIS2wIKhwEIEBgCKkD21RONBYK0jRqslu34v2bJCReooECEnt/7+oCGgsS6WlNQm6SSgPhtgYwVV4+dLXvRAt/UOBCPtRqaHHHAP2o0Mg1jbGF1ZGUtb3B1cy01OAFCCHRoaW5raW5nWiQ0YTczZGI2MS1iMTJkLTQ0YmQtODY2Ni01OGE4MDIzZmVjNzQSDH6zyaETa1VDzQJXZxoMb6SZPOzPjMNs2N9wIjCUrV7OKynlOEM02KU+0vk9VCoAf/UR0WC73U+eqo3rj7RnoSV3dOz9O9e/gYeVulMqgAFZ4+Yv0KzblLkKXTvFioCo//WKD5esHyLgmsFyav20E6j/ZXpYGgAOIdr//thBjQOYlpQwkU+GTY9fhGdwxP4LpsLlU8aKOnofZhG25RKvTHeG9Ey1E11DynFYVF6eWMYdCnFtARbmK237k1D6Y0TzLwOjefJFIU24zRYsFrrDJhgB",
+          "thinking": "",
+          "type": "thinking"
+        },
+        {
+          "id": "toolu_01QaYT19sWsgfbidFttavCm8",
+          "caller": {
+            "type": "direct"
+          },
+          "input": {
+            "sql": "SELECT flight_id, origin, destination, status, sched_dep_utc, actual_dep_utc, actual_arr_utc, dep_delay_minutes, arr_delay_minutes, delay_carrier, delay_late_aircraft FROM flights WHERE tail_number='N291WN' AND flight_date BETWEEN '2026-01-01' AND '2026-01-02' ORDER BY sched_dep_utc"
+          },
+          "name": "run_sql",
+          "type": "tool_use"
+        },
+        {
+          "id": "toolu_0145fVUhi18iPm7f3V3oTYPh",
+          "caller": {
+            "type": "direct"
+          },
+          "input": {
+            "sql": "SELECT * FROM chain_breaks WHERE tail_number='N291WN'"
+          },
+          "name": "run_sql",
+          "type": "tool_use"
+        }
+      ],
+      "stop_reason": "tool_use",
+      "input_tokens": 2785,
+      "output_tokens": 305
+    },
+    {
+      "content": [
+        {
+          "signature": "CAIS/AQKhwEIEBgCKkBp5ygmeL1cOzTPVmWnhMgJFveOpGXywYtARlgTkWhK+3Di5jEW7nEziLbuUZIZWl33V7V2xK9TZYpHf+56BkX7Mg1jbGF1ZGUtb3B1cy01OAFCCHRoaW5raW5nWiQ0YTczZGI2MS1iMTJkLTQ0YmQtODY2Ni01OGE4MDIzZmVjNzQSDL40G0EI7pjqJHGbIhoM19SeOJ7z1ehecWlSIjCPQDwn4OGbc6alu3qwH93etuGPO8oZfxgRt3pEyXJRuKRaU4ly6lWoum19SR2III0qoQMRtH4V/ryrzIxFEMnEc1PmtcEBp7tcvYIWSaRJNOxnC5Jbea5f2h027ixMKav7iHnpAcmJjzK+9mho1gehDIIc8leFttT26nKaF5ZG0SjcqPNFHyvPkRI0+1dg/OrccICt/orS1JpiWgUlZFYkAAaMEN5J9WgnwSv4dhtwtvkDoQkhiqnUz02T+ND5fIqcIipK4YwI/KKfbp+9GrqrvxdT9WEaswuUDchn+qkjARntlxqTN8Hr3fKy0mM57570+jHB97Npz2cHwYK05EpcWnWltEWCIXIP76dmox2Vovsd3EeMRwfHLjY3oziVdPc43HGCd3OSeSNErvTQDrfqZBNAkT1ZwTFTIIWN42L3JG6VK/8ZvHF7bynJLZN66UZBrjJSeUaVa7f8iUdkU68b20FqsuxuI5rKuobLdT3WEMww8Wbag+gekgybn5AxUp/A527nJRFa8vPJ6aep666fwTx3SA7MnTt4TZnHDTAkvFN3f/ICTfDZV/swl1uE7BYVIAnpzKPwikAOQO4+ne6RCh2DsVwL2gv1JNKVa8Q1FQV6Um4YAQ==",
+          "thinking": "",
+          "type": "thinking"
+        },
+        {
+          "text": "**2026-01-01|WN|4285|SDF|BWI|0540** \u2014 tail **N291WN**, scheduled out of Louisville at 05:40 local (10:40Z), off the gate at 22:12Z, **692 minutes late (11h32m)**. It arrived BWI at 23:32Z, 677 minutes behind schedule. That is the worst departure in the week by a wide margin; the next-worst is 2026-01-01|WN|4500|CLE|MCO|0900 at 461 minutes.\n\nThe blame is entirely the carrier's own: all 677 minutes of arrival delay are coded **delay_carrier**, with zero weather, NAS, security, or late-aircraft. Note this was N291WN's first leg in the extract \u2014 there is no inbound leg on file for it (chain_breaks shows only an end_of_window break for that tail on 2026-01-07), so whatever caused the ~11.5-hour hold at SDF happened before the first observed flight and cannot be identified from this data. A maintenance or crew record would be needed to say more.\n\nDownstream containment was good: the same tail's next leg, 2026-01-01|WN|1732|BWI|MCI|1930, went out only 34 minutes late (18 of those coded late_aircraft, 16 carrier) and arrived MCI 38 late. By the following morning the tail was back on schedule \u2014 2026-01-02|WN|950|MCI|BNA|0710 departed 8 minutes early \u2014 so the 692-minute hit cost one downstream leg roughly half an hour and nothing after that.",
+          "type": "text"
+        }
+      ],
+      "stop_reason": "end_turn",
+      "input_tokens": 4950,
+      "output_tokens": 676
+    }
+  ],
+  "tool_calls": [
+    {
+      "name": "run_sql",
+      "arguments": {
+        "sql": "SELECT flight_id, tail_number, status, dep_delay_minutes, arr_delay_minutes, delay_carrier, delay_weather, delay_nas, delay_security, delay_late_aircraft, sched_dep_local, actual_dep_utc, sched_dep_utc FROM flights ORDER BY dep_delay_minutes DESC NULLS LAST LIMIT 10"
+      },
+      "result": "{\"columns\": [\"flight_id\", \"tail_number\", \"status\", \"dep_delay_minutes\", \"arr_delay_minutes\", \"delay_carrier\", \"delay_weather\", \"delay_nas\", \"delay_security\", \"delay_late_aircraft\", \"sched_dep_local\", \"actual_dep_utc\", \"sched_dep_utc\"], \"rows\": [{\"flight_id\": \"2026-01-01|WN|4285|SDF|BWI|0540\", \"tail_number\": \"N291WN\", \"status\": \"arrived\", \"dep_delay_minutes\": 692, \"arr_delay_minutes\": 677, \"delay_carrier\": 677, \"delay_weather\": 0, \"delay_nas\": 0, \"delay_security\": 0, \"delay_late_aircraft\": 0, \"sched_dep_local\": \"2026-01-01 05:40:00\", \"actual_dep_utc\": \"2026-01-01 22:12:00+00:00\", \"sched_dep_utc\": \"2026-01-01 10:40:00+00:00\"}, {\"flight_id\": \"2026-01-01|WN|4500|CLE|MCO|0900\", \"tail_number\": \"N8958Q\", \"status\": \"arrived\", \"dep_delay_minutes\": 461, \"arr_delay_minutes\": 432, \"delay_carrier\": 432, \"delay_weather\": 0, \"delay_nas\": 0, \"delay_security\": 0, \"delay_late_aircraft\": 0, \"sched_dep_local\": \"2026-01-01 09:00:00\", \"actual_dep_utc\": \"2026-01-01 21:41:00+00:00\", \"sched_dep_utc\": \"2026-01-01 14:00:00+00:00\"}, {\"flight_id\": \"2026-01-04|WN|1278|BOS|BWI|1740\", \"tail_number\": \"N1801U\", \"status\": \"arrived\", \"dep_delay_minutes\": 458, \"arr_delay_minutes\": 438, \"delay_carrier\": 438, \"delay_weather\": 0, \"delay_nas\": 0, \"delay_security\": 0, \"delay_late_aircraft\": 0, \"sched_dep_local\": \"2026-01-04 17:40:00\", \"actual_dep_utc\": \"2026-01-05 06:18:00+00:00\", \"sched_dep_utc\": \"2026-01-04 22:40:00+00:00\"}, {\"flight_id\": \"2026-01-04|WN|1917|PSP|SJC|1430\", \"tail_number\": \"N8546V\", \"status\": \"arrived\", \"dep_delay_minutes\": 434, \"arr_delay_minutes\": 436, \"delay_carrier\": 8, \"delay_weather\": 0, \"delay_nas\": 2, \"delay_security\": 0, \"delay_late_aircraft\": 426, \"sched_dep_local\": \"2026-01-04 14:30:00\", \"actual_dep_utc\": \"2026-01-05 05:44:00+00:00\", \"sched_dep_utc\": \"2026-01-04 22:30:00+00:00\"}, {\"flight_id\": \"2026-01-01|WN|1899|SAN|SMF|0930\", \"tail_number\": \"N943WN\", \"status\": \"arrived\", \"dep_delay_minutes\": 429, \"arr_delay_minutes\": 413, \"delay_carrier\": 55, \"delay_weather\": 0, \"delay_nas\": 0, \"delay_security\": 0, \"delay_late_aircraft\": 358, \"sched_dep_local\": \"2026-01-01 09:30:00\", \"actual_dep_utc\": \"2026-01-02 00:39:00+00:00\", \"sched_dep_utc\": \"2026-01-01 17:30:00+00:00\"}, {\"flight_id\": \"2026-01-03|WN|3210|PHX|OAK|1115\", \"tail_number\": \"N8811L\", \"status\": \"arrived\", \"dep_delay_minutes\": 422, \"arr_delay_minutes\": 418, \"delay_carrier\": 418, \"delay_weather\": 0, \"delay_nas\": 0, \"delay_security\": 0, \"delay_late_aircraft\": 0, \"sched_dep_local\": \"2026-01-03 11:15:00\", \"actual_dep_utc\": \"2026-01-04 01:17:00+00:00\", \"sched_dep_utc\": \"2026-01-03 18:15:00+00:00\"}, {\"flight_id\": \"2026-01-04|WN|1917|DEN|PSP|1240\", \"tail_number\": \"N8546V\", \"status\": \"arrived\", \"dep_delay_minutes\": 417, \"arr_delay_minutes\": 424, \"delay_carrier\": 390, \"delay_weather\": 0, \"delay_nas\": 7, \"delay_security\": 0, \"delay_late_aircraft\": 27, \"sched_dep_local\": \"2026-01-04 12:40:00\", \"actual_dep_utc\": \"2026-01-05 02:37:00+00:00\", \"sched_dep_utc\": \"2026-01-04 19:40:00+00:00\"}, {\"flight_id\": \"2026-01-02|WN|1737|PWM|BWI|0530\", \"tail_number\": \"N8808Q\", \"status\": \"arrived\", \"dep_delay_minutes\": 416, \"arr_delay_minutes\": 406, \"delay_carrier\": 406, \"delay_weather\": 0, \"delay_nas\": 0, \"delay_security\": 0, \"delay_late_aircraft\": 0, \"sched_dep_local\": \"2026-01-02 05:30:00\", \"actual_dep_utc\": \"2026-01-02 17:26:00+00:00\", \"sched_dep_utc\": \"2026-01-02 10:30:00+00:00\"}, {\"flight_id\": \"2026-01-05|WN|3515|MCO|MCI|0825\", \"tail_number\": \"N453WN\", \"status\": \"arrived\", \"dep_delay_minutes\": 400, \"arr_delay_minutes\": 410, \"delay_carrier\": 400, \"delay_weather\": 0, \"delay_nas\": 10, \"delay_security\": 0, \"delay_late_aircraft\": 0, \"sched_dep_local\": \"2026-01-05 08:25:00\", \"actual_dep_utc\": \"2026-01-05 20:05:00+00:00\", \"sched_dep_utc\": \"2026-01-05 13:25:00+00:00\"}, {\"flight_id\": \"2026-01-04|WN|3374|LAX|MDW|0815\", \"tail_number\": \"N8740A\", \"status\": \"arrived\", \"dep_delay_minutes\": 394, \"arr_delay_minutes\": 368, \"delay_carrier\": 359, \"delay_weather\": 0, \"delay_nas\": 0, \"delay_security\": 0, \"delay_late_aircraft\": 9, \"sched_dep_local\": \"2026-01-04 08:15:00\", \"actual_dep_utc\": \"2026-01-04 22:49:00+00:00\", \"sched_dep_utc\": \"2026-01-04 16:15:00+00:00\"}], \"row_count\": 10}",
+      "is_error": false
+    },
+    {
+      "name": "run_sql",
+      "arguments": {
+        "sql": "SELECT count(*) n, count(dep_delay_minutes) with_delay, max(dep_delay_minutes) mx FROM flights"
+      },
+      "result": "{\"columns\": [\"n\", \"with_delay\", \"mx\"], \"rows\": [{\"n\": 26161, \"with_delay\": 26058, \"mx\": 692}], \"row_count\": 1}",
+      "is_error": false
+    },
+    {
+      "name": "run_sql",
+      "arguments": {
+        "sql": "SELECT flight_id, origin, destination, status, sched_dep_utc, actual_dep_utc, actual_arr_utc, dep_delay_minutes, arr_delay_minutes, delay_carrier, delay_late_aircraft FROM flights WHERE tail_number='N291WN' AND flight_date BETWEEN '2026-01-01' AND '2026-01-02' ORDER BY sched_dep_utc"
+      },
+      "result": "{\"columns\": [\"flight_id\", \"origin\", \"destination\", \"status\", \"sched_dep_utc\", \"actual_dep_utc\", \"actual_arr_utc\", \"dep_delay_minutes\", \"arr_delay_minutes\", \"delay_carrier\", \"delay_late_aircraft\"], \"rows\": [{\"flight_id\": \"2026-01-01|WN|4285|SDF|BWI|0540\", \"origin\": \"SDF\", \"destination\": \"BWI\", \"status\": \"arrived\", \"sched_dep_utc\": \"2026-01-01 10:40:00+00:00\", \"actual_dep_utc\": \"2026-01-01 22:12:00+00:00\", \"actual_arr_utc\": \"2026-01-01 23:32:00+00:00\", \"dep_delay_minutes\": 692, \"arr_delay_minutes\": 677, \"delay_carrier\": 677, \"delay_late_aircraft\": 0}, {\"flight_id\": \"2026-01-01|WN|1732|BWI|MCI|1930\", \"origin\": \"BWI\", \"destination\": \"MCI\", \"status\": \"arrived\", \"sched_dep_utc\": \"2026-01-02 00:30:00+00:00\", \"actual_dep_utc\": \"2026-01-02 01:04:00+00:00\", \"actual_arr_utc\": \"2026-01-02 04:03:00+00:00\", \"dep_delay_minutes\": 34, \"arr_delay_minutes\": 38, \"delay_carrier\": 16, \"delay_late_aircraft\": 18}, {\"flight_id\": \"2026-01-02|WN|950|MCI|BNA|0710\", \"origin\": \"MCI\", \"destination\": \"BNA\", \"status\": \"arrived\", \"sched_dep_utc\": \"2026-01-02 13:10:00+00:00\", \"actual_dep_utc\": \"2026-01-02 13:02:00+00:00\", \"actual_arr_utc\": \"2026-01-02 14:19:00+00:00\", \"dep_delay_minutes\": -8, \"arr_delay_minutes\": -26, \"delay_carrier\": null, \"delay_late_aircraft\": null}, {\"flight_id\": \"2026-01-02|WN|1677|BNA|CLT|0940\", \"origin\": \"BNA\", \"destination\": \"CLT\", \"status\": \"arrived\", \"sched_dep_utc\": \"2026-01-02 15:40:00+00:00\", \"actual_dep_utc\": \"2026-01-02 15:36:00+00:00\", \"actual_arr_utc\": \"2026-01-02 16:46:00+00:00\", \"dep_delay_minutes\": -4, \"arr_delay_minutes\": -24, \"delay_carrier\": null, \"delay_late_aircraft\": null}, {\"flight_id\": \"2026-01-02|WN|447|CLT|STL|1250\", \"origin\": \"CLT\", \"destination\": \"STL\", \"status\": \"arrived\", \"sched_dep_utc\": \"2026-01-02 17:50:00+00:00\", \"actual_dep_utc\": \"2026-01-02 17:44:00+00:00\", \"actual_arr_utc\": \"2026-01-02 19:34:00+00:00\", \"dep_delay_minutes\": -6, \"arr_delay_minutes\": -21, \"delay_carrier\": null, \"delay_late_aircraft\": null}, {\"flight_id\": \"2026-01-02|WN|4854|STL|LGA|1430\", \"origin\": \"STL\", \"destination\": \"LGA\", \"status\": \"arrived\", \"sched_dep_utc\": \"2026-01-02 20:30:00+00:00\", \"actual_dep_utc\": \"2026-01-02 20:28:00+00:00\", \"actual_arr_utc\": \"2026-01-02 22:37:00+00:00\", \"dep_delay_minutes\": -2, \"arr_delay_minutes\": -13, \"delay_carrier\": null, \"delay_late_aircraft\": null}, {\"flight_id\": \"2026-01-02|WN|1789|LGA|STL|1830\", \"origin\": \"LGA\", \"destination\": \"STL\", \"status\": \"arrived\", \"sched_dep_utc\": \"2026-01-02 23:30:00+00:00\", \"actual_dep_utc\": \"2026-01-02 23:26:00+00:00\", \"actual_arr_utc\": \"2026-01-03 02:15:00+00:00\", \"dep_delay_minutes\": -4, \"arr_delay_minutes\": -5, \"delay_carrier\": null, \"delay_late_aircraft\": null}, {\"flight_id\": \"2026-01-02|WN|4366|STL|MSY|2130\", \"origin\": \"STL\", \"destination\": \"MSY\", \"status\": \"arrived\", \"sched_dep_utc\": \"2026-01-03 03:30:00+00:00\", \"actual_dep_utc\": \"2026-01-03 03:23:00+00:00\", \"actual_arr_utc\": \"2026-01-03 04:57:00+00:00\", \"dep_delay_minutes\": -7, \"arr_delay_minutes\": -18, \"delay_carrier\": null, \"delay_late_aircraft\": null}], \"row_count\": 8}",
+      "is_error": false
+    },
+    {
+      "name": "run_sql",
+      "arguments": {
+        "sql": "SELECT * FROM chain_breaks WHERE tail_number='N291WN'"
+      },
+      "result": "{\"columns\": [\"flight_id\", \"tail_number\", \"arrived_at\", \"next_departs_from\", \"gap_minutes\", \"reason\"], \"rows\": [{\"flight_id\": \"2026-01-07|WN|3643|SMF|LAS|2035\", \"tail_number\": \"N291WN\", \"arrived_at\": \"LAS\", \"next_departs_from\": null, \"gap_minutes\": null, \"reason\": \"end_of_window\"}], \"row_count\": 1}",
+      "is_error": false
+    }
+  ],
+  "answer": "**2026-01-01|WN|4285|SDF|BWI|0540** \u2014 tail **N291WN**, scheduled out of Louisville at 05:40 local (10:40Z), off the gate at 22:12Z, **692 minutes late (11h32m)**. It arrived BWI at 23:32Z, 677 minutes behind schedule. That is the worst departure in the week by a wide margin; the next-worst is 2026-01-01|WN|4500|CLE|MCO|0900 at 461 minutes.\n\nThe blame is entirely the carrier's own: all 677 minutes of arrival delay are coded **delay_carrier**, with zero weather, NAS, security, or late-aircraft. Note this was N291WN's first leg in the extract \u2014 there is no inbound leg on file for it (chain_breaks shows only an end_of_window break for that tail on 2026-01-07), so whatever caused the ~11.5-hour hold at SDF happened before the first observed flight and cannot be identified from this data. A maintenance or crew record would be needed to say more.\n\nDownstream containment was good: the same tail's next leg, 2026-01-01|WN|1732|BWI|MCI|1930, went out only 34 minutes late (18 of those coded late_aircraft, 16 carrier) and arrived MCI 38 late. By the following morning the tail was back on schedule \u2014 2026-01-02|WN|950|MCI|BNA|0710 departed 8 minutes early \u2014 so the 692-minute hit cost one downstream leg roughly half an hour and nothing after that.",
+  "error": null,
+  "usage": {
+    "input_tokens": 7835,
+    "output_tokens": 1272,
+    "cost_usd": 0.071
+  }
+}

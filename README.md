@@ -252,12 +252,61 @@ layer can lose them. One needs a count of 106 objects through a tool that return
 does in a single `GROUP BY`. One has no answer in the data at all and is graded on refusing
 rather than inventing a 737.
 
-> **Status: not run.** The questions, the graders, both agents, the loop and the replay harness
-> are complete and tested offline. There is no `n out of 10` in this README because no live run
-> has happened. That needs an `ANTHROPIC_API_KEY` and costs money per question.
-> `python scripts/run_eval.py` produces it and commits the transcripts.
-> `python scripts/run_eval.py --replay` re-grades what is committed and currently reports 0/10,
-> which is the correct reading of an eval that has not been run.
+### The result
+
+| | Ontology agent | SQL baseline |
+|---|---|---|
+| Score | **9 / 10** | **8 / 10** |
+| Cost per answer | $0.262 | **$0.159** |
+| Total for ten questions | $2.62 | $1.59 |
+| Tool calls | 84 | 54 |
+
+Run on `claude-opus-5`, both agents, one live run, no retries and no cherry-picking. Every
+transcript is in `data/transcripts/`, and `python scripts/run_eval.py --replay` re-grades them
+offline without an API key.
+
+**The ontology agent wins by one question, and it is not the interesting part.** What matters is
+that the two agents fail in completely different places, and both failure modes were written down
+before the run.
+
+**Its one loss is the predicted one.** `cancellations-by-reason` needs a count of 106 objects
+through a tool that returns at most 40. The agent spent **38 tool calls and $1.14** trying to page
+that count and still could not produce it. SQL answered it in 4 calls for **$0.04**, thirty times
+cheaper. The eval was built to expose that ceiling and it did.
+
+**Both of the baseline's losses are citation failures, not wrong answers.** On
+`cascade-projection` it computed the whole cascade correctly and referred to the root as
+"WN3851", never writing the object id. On `rotation-traversal` it laid out all seven legs
+correctly and never once named the tail, `N8633A`, which was the object the question asked about.
+The ontology agent cited both, because its tools hand it ids and SQL hands it rows. That is the
+argument this project makes, and it is the one thing here that came out as designed.
+
+**The cost gap is one question, not a property of the layer.** The baseline looks 39% cheaper per
+answer, and that reads as a real tax on the object layer until you remove the row-cap question
+from both sides. Do that and the ontology agent costs $0.165 per answer against the baseline's
+$0.173. The premium is not the ontology being expensive. It is one question where the object
+layer thrashes against its own cap, and the honest conclusion is that a `count` tool would have
+fixed it.
+
+The question stays in the set regardless. Removing it after seeing it fail would be the whole
+problem with self-graded evals.
+
+**One thing the replay harness found that the scores do not show.** Every transcript's tool calls
+are re-executed against a freshly built store on every `make check`, so a change to propagation or
+the store that would alter a published answer breaks the build. All ten ontology transcripts
+replay byte for byte. Two of the baseline's do not, and the reason is in the SQL the model wrote:
+
+```sql
+SELECT origin, count(*) n, string_agg(DISTINCT cancellation_code, ',') codes
+FROM flights WHERE status = 'cancelled' GROUP BY 1 ORDER BY n DESC LIMIT 8
+```
+
+Many origins tie at `n = 5`, so `ORDER BY n DESC LIMIT 8` does not define which eight rows come
+back, and `string_agg` without an inner `ORDER BY` does not define the order inside the string.
+Re-running it returns a different answer. That is not a bug in this repository, so the test
+re-runs any disagreeing query and only fails when a query is stable on re-run and still disagrees
+with its recording. It is worth stating plainly though: two of the twenty published answers rest
+on a query that does not give the same result twice, and both are on the SQL side.
 
 ---
 
@@ -322,8 +371,10 @@ make check       # ruff, mypy --strict, pytest, and the frontend typecheck
 make docker      # the API image, exactly as the deploy builds it
 ```
 
-123 tests plus one that skips until an eval run is recorded, all offline and deterministic,
-against the committed one-week sample. The full months are gitignored and rebuilt on demand:
+135 tests, all offline and deterministic, against the committed one-week sample. That includes
+re-grading every committed eval transcript, so a change to propagation or the store that would
+have altered a published answer fails the build. The full months are gitignored and rebuilt on
+demand:
 
 ```bash
 python scripts/fetch_data.py --month 2026-01 --database data/flights_2026_01.duckdb
@@ -353,16 +404,14 @@ does not.
 ## Status
 
 Ingestion, the object model, propagation, actions, the question-answering layer, the API and the
-frontend are built, tested and deployed. Two things are outstanding and neither is hidden.
+frontend are built, tested and deployed. The eval has been run: 9/10 for the ontology agent and
+8/10 for the SQL baseline, transcripts committed. One thing is outstanding and it is not hidden.
 
 - **Discovery.** No interviews were held. The persona is built from published sources: BTS
   reporting directives, IATA AHM 730 delay coding, and the aircraft-recovery literature. Those
   corroborate the mechanics but not the premise that anyone lacks this capability.
   `docs/interview-guide.md` holds the questions that would settle it, and `DECISIONS.md` names
   the decisions they could reverse.
-- **The eval score.** The ten questions, the hand-verified answers, the graders, both agents and
-  the replay harness are all committed. The run is not. It needs an API key, so the panel reads
-  `not run` rather than a number nobody produced.
 
 ## Data
 

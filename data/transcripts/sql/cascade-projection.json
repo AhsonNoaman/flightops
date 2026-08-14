@@ -1,0 +1,173 @@
+{
+  "question_id": "cascade-projection",
+  "question": "That same PHX-SFO departure on 2026-01-03, flight 3851, is going to be 142 minutes late. How much delay does that push into the rest of that aircraft's day, and which legs absorb it?",
+  "agent": "sql",
+  "model": "claude-opus-5",
+  "recorded_at": "2026-08-14T18:46:19+00:00",
+  "turns": [
+    {
+      "content": [
+        {
+          "signature": "CAISyQIKhwEIEBgCKkDkbNdDvkO6ouLD302OKYbE4hKv9ljusUeUfa2jDNcjnbWNDuJ0GRc5xmoTxwhiWYPFHD5Yh5YsS/oVbB9nwC23Mg1jbGF1ZGUtb3B1cy01OAFCCHRoaW5raW5nWiQ0YTczZGI2MS1iMTJkLTQ0YmQtODY2Ni01OGE4MDIzZmVjNzQSDDkM7sG/uYaUw4PyaxoMKbCUfnxCo5dj6ZXCIjAcDG+OW9uXiJMEogoGlVpVu2fa0bH7EdQtXisZ7y3mRVySBZsKKM7LUe6dhG8z3oUqb4z887Hy0E8Ru5x4y+p5eX43off6G2IdzimN3tT88+AMNKj/i54Je7fqjCW2G9qCa2qcm7hcHHKKCdc/HsmHFKXovGH2TnP9x05SE/IIOPuS5TTySH/loZXAYSJWvwPCQ2ol8xli9eKPgqxf1eBlOhgB",
+          "thinking": "",
+          "type": "thinking"
+        },
+        {
+          "text": "I'll start by pulling the flight and its rotation forward.",
+          "type": "text"
+        },
+        {
+          "id": "toolu_01VmKDjKZAmvGqP7g1nWdZJA",
+          "caller": {
+            "type": "direct"
+          },
+          "input": {
+            "sql": "SELECT * FROM flights WHERE flight_id = '2026-01-03|WN|3851|PHX|SFO|0855'"
+          },
+          "name": "run_sql",
+          "type": "tool_use"
+        },
+        {
+          "id": "toolu_014axjWV4tvJFp389EscCDqH",
+          "caller": {
+            "type": "direct"
+          },
+          "input": {
+            "sql": "WITH RECURSIVE chain AS (\n  SELECT from_flight_id, to_flight_id, tail_number, ground_minutes, 1 AS step\n  FROM next_leg WHERE from_flight_id = '2026-01-03|WN|3851|PHX|SFO|0855'\n  UNION ALL\n  SELECT n.from_flight_id, n.to_flight_id, n.tail_number, n.ground_minutes, c.step+1\n  FROM next_leg n JOIN chain c ON n.from_flight_id = c.to_flight_id\n)\nSELECT c.step, c.from_flight_id, c.to_flight_id, c.ground_minutes,\n       f.origin, f.destination, f.sched_dep_utc, f.sched_arr_utc, f.sched_block_minutes,\n       f.status, f.dep_delay_minutes, f.arr_delay_minutes\nFROM chain c JOIN flights f ON f.flight_id = c.to_flight_id\nORDER BY c.step"
+          },
+          "name": "run_sql",
+          "type": "tool_use"
+        }
+      ],
+      "stop_reason": "tool_use",
+      "input_tokens": 140,
+      "output_tokens": 546
+    },
+    {
+      "content": [
+        {
+          "signature": "CAISzAYKhwEIEBgCKkAiJC9s1nBJ0ym9vRXuJo1V9zAZajUBlxCmW8dyF+QnLOJa1tgu9hlRlIQLCCPfjEprkEa8JHOIdVTp+xaC1lVVMg1jbGF1ZGUtb3B1cy01OAFCCHRoaW5raW5nWiQ0YTczZGI2MS1iMTJkLTQ0YmQtODY2Ni01OGE4MDIzZmVjNzQSDM6onDN5OEk9hTHZJhoMQUBw+mF8N5cmPRrAIjABERvWiZMXHHcHXBaKomhXWmkHzuysmSVc8RZDh2B4moKdKgHI2WYoJXwxOVWRQhgq8QStcVWb+AmF2IBxM2Obp6yRb1BG6ZXtjWL7Mpqxvw+p+FGRNvjFNoLKt0OdEX74zrbiAK+YQ+n2FQF/FKncKR9rfRyI5ZCBkxp5mptSzxeEDyp9DCUP96UZCpNM0NtfbXLekwyzG4FbPahvRMVm1ATMV6mRc2Jv8sBJDPAcQG0Y/Qo7cx+JLDNFS2yspRCHwpl2PtBbeKY8vOPA4AEJa+J7ys+WYXalJFibMXhhjHAJvPIvlAA8XhseGBkXJMhUxu8Y6IrMZozUlrlSgY8+1LOp7uW/P6cHIR9wor/y153Al2mtUKOcDspdxJygMPT7k4YY+hyRVYwfBlFqxNoDTyyB2EgloQ5Scfxb1GGzA6PGX1OsABSJlBRjk0fgJ04TNfUneK9+OTLu6yooSWgONrHbuwzYJQOdKnt3spav6zacXs3iLxuK6DrTCk6WTomaQspfBUJjrZPr7rmidB+87pEZ2dJq5NI5ivv9kibbs3rBrTUssgO2A+P9pW9+fbdG2UT8uQhmvOhQL8AgzRLOQug/+iGJjSO9GMvT9zf/XmUPs2PzllYLtcw4F5OeWfL8APrf648rMHZ5z3NX6vcb4qszJD6rYA6sJlZVCletSxT0Zi0jQJSB/gDHbbqXJSaSjDFt9FwLoEtFSNGccyj8GVr4J2lx8yqbf50I8eW2sa13bR0A7466wAy3a2UmR+M6Wa9sx+zk86WUSuavxG/7Xqi7XWX7Msh1UN3YmUlZ22aDzq+JOksehSkcYhOY4XaIeFtNPgpi1XLufqq88yvYtIkeQOsLB+4Akt8FGAnXLzDnWZ5vHucs5qPCFbckGs7tJ2PCGAE=",
+          "thinking": "",
+          "type": "thinking"
+        },
+        {
+          "text": "Now the minimum-turn percentiles for the stations on that rotation.",
+          "type": "text"
+        },
+        {
+          "id": "toolu_01Swvo72fagVYGtaiF8EQiyD",
+          "caller": {
+            "type": "direct"
+          },
+          "input": {
+            "sql": "WITH t AS (\n  SELECT f.destination AS station, n.ground_minutes\n  FROM next_leg n JOIN flights f ON f.flight_id = n.from_flight_id\n  WHERE n.ground_minutes BETWEEN 15 AND 480\n)\nSELECT station, count(*) AS turns,\n       quantile_cont(ground_minutes, 0.05) AS p05\nFROM t WHERE station IN ('SFO','PHX','LGB','LAS','DAL','HOU','STL','FLL','BWI','DEN','CLE')\nGROUP BY station ORDER BY station"
+          },
+          "name": "run_sql",
+          "type": "tool_use"
+        },
+        {
+          "id": "toolu_017FTq4NqV1fnbTYiqo9uB7s",
+          "caller": {
+            "type": "direct"
+          },
+          "input": {
+            "sql": "WITH t AS (\n  SELECT n.ground_minutes FROM next_leg n WHERE n.ground_minutes BETWEEN 15 AND 480\n)\nSELECT count(*) AS turns, quantile_cont(ground_minutes,0.05) AS carrier_p05 FROM t"
+          },
+          "name": "run_sql",
+          "type": "tool_use"
+        }
+      ],
+      "stop_reason": "tool_use",
+      "input_tokens": 6505,
+      "output_tokens": 660
+    },
+    {
+      "content": [
+        {
+          "signature": "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",
+          "thinking": "",
+          "type": "thinking"
+        },
+        {
+          "id": "toolu_01AgMHK7r9MYUo9ZU7HtHHGN",
+          "caller": {
+            "type": "direct"
+          },
+          "input": {
+            "sql": "SELECT flight_id, dep_delay_minutes, arr_delay_minutes, delay_carrier, delay_weather, delay_nas, delay_security, delay_late_aircraft\nFROM flights WHERE flight_id IN (\n'2026-01-03|WN|4106|SFO|PHX|1055','2026-01-03|WN|172|PHX|LGB|1440','2026-01-03|WN|65|LGB|LAS|1545',\n'2026-01-03|WN|65|LAS|DAL|1735','2026-01-03|WN|65|DAL|HOU|2255','2026-01-04|WN|2999|HOU|STL|0500')"
+          },
+          "name": "run_sql",
+          "type": "tool_use"
+        }
+      ],
+      "stop_reason": "tool_use",
+      "input_tokens": 7599,
+      "output_tokens": 1261
+    },
+    {
+      "content": [
+        {
+          "signature": "CAIS+wEKhwEIEBgCKkC8yH6EcP7K0RF1nU7UNHmBgJAMDAlvhX3ip7hYnnxhFkBnZVSgi7W/xrsXV+1oLB/q+DOtQATOZ9U9VgS6jOs4Mg1jbGF1ZGUtb3B1cy01OAFCCHRoaW5raW5nWiQ0YTczZGI2MS1iMTJkLTQ0YmQtODY2Ni01OGE4MDIzZmVjNzQSDG84OLgH988vpY4SwxoMY2NhXW6sD/Y82pQbIjA7CCssDHXQciMAavPOwIvhVJ6Ai2VBFBwOkcR2m5WnSUiONTdH/jjJ5YqTK7eeDHUqIdMvGBPtGq3P7p+G0ju0cc6HZcAT3ECDATD8D/IXwGb05RgB",
+          "thinking": "",
+          "type": "thinking"
+        },
+        {
+          "text": "The tail is **N8633A**, and the 142-minute departure delay propagates through **five more legs on 2026-01-03** before the overnight at HOU kills it. Minimum turn is 35 minutes at every station involved (SFO, PHX, LGB, LAS, DAL \u2014 each has \u2265139 observed turns, and the 5th-percentile ground time is 35 min at all of them; carrier-wide p05 is also 35).\n\nProjection, walking the rotation forward from a 18:17Z off / 20:27Z on at SFO:\n\n| Leg | Sched dep (UTC) | Projected dep | Dep delay | Turn buffer eaten |\n|---|---|---|---|---|\n| 2026-01-03\\|WN\\|4106\\|SFO\\|PHX\\|1055 | 18:55 | 21:02 | **+127** | 50 sched \u2212 35 min = 15 absorbed |\n| 2026-01-03\\|WN\\|172\\|PHX\\|LGB\\|1440 | 21:40 | 23:37 | **+117** | 45 \u2212 35 = 10 absorbed |\n| 2026-01-03\\|WN\\|65\\|LGB\\|LAS\\|1545 | 23:45 | 01:37 (1/4) | **+112** | 40 \u2212 35 = 5 absorbed |\n| 2026-01-03\\|WN\\|65\\|LAS\\|DAL\\|1735 | 01:35 (1/4) | 03:22 | **+107** | 40 \u2212 35 = 5 absorbed |\n| 2026-01-03\\|WN\\|65\\|DAL\\|HOU\\|2255 | 04:55 (1/4) | 06:37 | **+102** | 40 \u2212 35 = 5 absorbed |\n| 2026-01-04\\|WN\\|2999\\|HOU\\|STL\\|0500 | 11:00 (1/4) | 11:00 \u2014 on time | 0 | 295 min of ground, absorbs the remaining 102 |\n\nTotal pushed downstream: **565 minutes of departure delay across five legs**, ending at HOU. The day's turns only absorb 40 minutes in total (15 at SFO, 10 at PHX, 5 each at LGB, LAS, DAL) \u2014 the schedule is built at or barely above minimum turn from SFO onward, so essentially nothing recovers in-day. The real absorber is the 295-minute overnight sit at HOU, which swallows the remaining 102 minutes; WN2999 the next morning departs clean.\n\nWhat actually happened on this tail matches and slightly exceeds the projection: those same five legs went out +144, +135, +140, +144, +155, with the delay-cause file attributing 133, 128, 124, 116 and 114 minutes respectively to late_aircraft \u2014 i.e. the cascade is the dominant cause on every one of them, with only 1\u201325 minutes of fresh carrier delay added per leg. WN2999 HOU\u2013STL then departed +3 and arrived \u22128, confirming the break point. Note the original 141 minutes of arrival delay on WN3851 itself was attributed entirely to NAS, not to an inbound aircraft.",
+          "type": "text"
+        }
+      ],
+      "stop_reason": "end_turn",
+      "input_tokens": 9632,
+      "output_tokens": 1039
+    }
+  ],
+  "tool_calls": [
+    {
+      "name": "run_sql",
+      "arguments": {
+        "sql": "SELECT * FROM flights WHERE flight_id = '2026-01-03|WN|3851|PHX|SFO|0855'"
+      },
+      "result": "{\"columns\": [\"flight_id\", \"flight_date\", \"carrier\", \"flight_number\", \"origin\", \"destination\", \"tail_number\", \"status\", \"cancellation_code\", \"origin_tz\", \"dest_tz\", \"sched_dep_local\", \"sched_arr_local\", \"sched_dep_utc\", \"sched_arr_utc\", \"actual_dep_utc\", \"actual_arr_utc\", \"dep_delay_minutes\", \"arr_delay_minutes\", \"sched_block_minutes\", \"distance_miles\", \"delay_carrier\", \"delay_weather\", \"delay_nas\", \"delay_security\", \"delay_late_aircraft\", \"crs_arr_hhmm\", \"dep_hhmm\", \"arr_hhmm\"], \"rows\": [{\"flight_id\": \"2026-01-03|WN|3851|PHX|SFO|0855\", \"flight_date\": \"2026-01-03\", \"carrier\": \"WN\", \"flight_number\": \"3851\", \"origin\": \"PHX\", \"destination\": \"SFO\", \"tail_number\": \"N8633A\", \"status\": \"arrived\", \"cancellation_code\": null, \"origin_tz\": \"America/Phoenix\", \"dest_tz\": \"America/Los_Angeles\", \"sched_dep_local\": \"2026-01-03 08:55:00\", \"sched_arr_local\": \"2026-01-03 10:05:00\", \"sched_dep_utc\": \"2026-01-03 15:55:00+00:00\", \"sched_arr_utc\": \"2026-01-03 18:05:00+00:00\", \"actual_dep_utc\": \"2026-01-03 18:17:00+00:00\", \"actual_arr_utc\": \"2026-01-03 20:26:00+00:00\", \"dep_delay_minutes\": 142, \"arr_delay_minutes\": 141, \"sched_block_minutes\": 130, \"distance_miles\": 651, \"delay_carrier\": 0, \"delay_weather\": 0, \"delay_nas\": 141, \"delay_security\": 0, \"delay_late_aircraft\": 0, \"crs_arr_hhmm\": \"1005\", \"dep_hhmm\": \"1117\", \"arr_hhmm\": \"1226\"}], \"row_count\": 1}",
+      "is_error": false
+    },
+    {
+      "name": "run_sql",
+      "arguments": {
+        "sql": "WITH RECURSIVE chain AS (\n  SELECT from_flight_id, to_flight_id, tail_number, ground_minutes, 1 AS step\n  FROM next_leg WHERE from_flight_id = '2026-01-03|WN|3851|PHX|SFO|0855'\n  UNION ALL\n  SELECT n.from_flight_id, n.to_flight_id, n.tail_number, n.ground_minutes, c.step+1\n  FROM next_leg n JOIN chain c ON n.from_flight_id = c.to_flight_id\n)\nSELECT c.step, c.from_flight_id, c.to_flight_id, c.ground_minutes,\n       f.origin, f.destination, f.sched_dep_utc, f.sched_arr_utc, f.sched_block_minutes,\n       f.status, f.dep_delay_minutes, f.arr_delay_minutes\nFROM chain c JOIN flights f ON f.flight_id = c.to_flight_id\nORDER BY c.step"
+      },
+      "result": "{\"columns\": [\"step\", \"from_flight_id\", \"to_flight_id\", \"ground_minutes\", \"origin\", \"destination\", \"sched_dep_utc\", \"sched_arr_utc\", \"sched_block_minutes\", \"status\", \"dep_delay_minutes\", \"arr_delay_minutes\"], \"rows\": [{\"step\": 1, \"from_flight_id\": \"2026-01-03|WN|3851|PHX|SFO|0855\", \"to_flight_id\": \"2026-01-03|WN|4106|SFO|PHX|1055\", \"ground_minutes\": 50, \"origin\": \"SFO\", \"destination\": \"PHX\", \"sched_dep_utc\": \"2026-01-03 18:55:00+00:00\", \"sched_arr_utc\": \"2026-01-03 20:55:00+00:00\", \"sched_block_minutes\": 120, \"status\": \"arrived\", \"dep_delay_minutes\": 144, \"arr_delay_minutes\": 134}, {\"step\": 2, \"from_flight_id\": \"2026-01-03|WN|4106|SFO|PHX|1055\", \"to_flight_id\": \"2026-01-03|WN|172|PHX|LGB|1440\", \"ground_minutes\": 45, \"origin\": \"PHX\", \"destination\": \"LGB\", \"sched_dep_utc\": \"2026-01-03 21:40:00+00:00\", \"sched_arr_utc\": \"2026-01-03 23:05:00+00:00\", \"sched_block_minutes\": 85, \"status\": \"arrived\", \"dep_delay_minutes\": 135, \"arr_delay_minutes\": 128}, {\"step\": 3, \"from_flight_id\": \"2026-01-03|WN|172|PHX|LGB|1440\", \"to_flight_id\": \"2026-01-03|WN|65|LGB|LAS|1545\", \"ground_minutes\": 40, \"origin\": \"LGB\", \"destination\": \"LAS\", \"sched_dep_utc\": \"2026-01-03 23:45:00+00:00\", \"sched_arr_utc\": \"2026-01-04 00:55:00+00:00\", \"sched_block_minutes\": 70, \"status\": \"arrived\", \"dep_delay_minutes\": 140, \"arr_delay_minutes\": 133}, {\"step\": 4, \"from_flight_id\": \"2026-01-03|WN|65|LGB|LAS|1545\", \"to_flight_id\": \"2026-01-03|WN|65|LAS|DAL|1735\", \"ground_minutes\": 40, \"origin\": \"LAS\", \"destination\": \"DAL\", \"sched_dep_utc\": \"2026-01-04 01:35:00+00:00\", \"sched_arr_utc\": \"2026-01-04 04:15:00+00:00\", \"sched_block_minutes\": 160, \"status\": \"arrived\", \"dep_delay_minutes\": 144, \"arr_delay_minutes\": 126}, {\"step\": 5, \"from_flight_id\": \"2026-01-03|WN|65|LAS|DAL|1735\", \"to_flight_id\": \"2026-01-03|WN|65|DAL|HOU|2255\", \"ground_minutes\": 40, \"origin\": \"DAL\", \"destination\": \"HOU\", \"sched_dep_utc\": \"2026-01-04 04:55:00+00:00\", \"sched_arr_utc\": \"2026-01-04 06:05:00+00:00\", \"sched_block_minutes\": 70, \"status\": \"arrived\", \"dep_delay_minutes\": 155, \"arr_delay_minutes\": 139}, {\"step\": 6, \"from_flight_id\": \"2026-01-03|WN|65|DAL|HOU|2255\", \"to_flight_id\": \"2026-01-04|WN|2999|HOU|STL|0500\", \"ground_minutes\": 295, \"origin\": \"HOU\", \"destination\": \"STL\", \"sched_dep_utc\": \"2026-01-04 11:00:00+00:00\", \"sched_arr_utc\": \"2026-01-04 13:00:00+00:00\", \"sched_block_minutes\": 120, \"status\": \"arrived\", \"dep_delay_minutes\": 3, \"arr_delay_minutes\": -8}, {\"step\": 7, \"from_flight_id\": \"2026-01-04|WN|2999|HOU|STL|0500\", \"to_flight_id\": \"2026-01-04|WN|807|STL|FLL|0755\", \"ground_minutes\": 55, \"origin\": \"STL\", \"destination\": \"FLL\", \"sched_dep_utc\": \"2026-01-04 13:55:00+00:00\", \"sched_arr_utc\": \"2026-01-04 16:35:00+00:00\", \"sched_block_minutes\": 160, \"status\": \"arrived\", \"dep_delay_minutes\": 21, \"arr_delay_minutes\": 15}, {\"step\": 8, \"from_flight_id\": \"2026-01-04|WN|807|STL|FLL|0755\", \"to_flight_id\": \"2026-01-04|WN|236|FLL|BWI|1215\", \"ground_minutes\": 40, \"origin\": \"FLL\", \"destination\": \"BWI\", \"sched_dep_utc\": \"2026-01-04 17:15:00+00:00\", \"sched_arr_utc\": \"2026-01-04 19:45:00+00:00\", \"sched_block_minutes\": 150, \"status\": \"arrived\", \"dep_delay_minutes\": 34, \"arr_delay_minutes\": 65}, {\"step\": 9, \"from_flight_id\": \"2026-01-04|WN|236|FLL|BWI|1215\", \"to_flight_id\": \"2026-01-04|WN|1666|BWI|DEN|1510\", \"ground_minutes\": 25, \"origin\": \"BWI\", \"destination\": \"DEN\", \"sched_dep_utc\": \"2026-01-04 20:10:00+00:00\", \"sched_arr_utc\": \"2026-01-05 00:15:00+00:00\", \"sched_block_minutes\": 245, \"status\": \"arrived\", \"dep_delay_minutes\": 131, \"arr_delay_minutes\": 119}, {\"step\": 10, \"from_flight_id\": \"2026-01-04|WN|1666|BWI|DEN|1510\", \"to_flight_id\": \"2026-01-04|WN|1448|DEN|CLE|1805\", \"ground_minutes\": 50, \"origin\": \"DEN\", \"destination\": \"CLE\", \"sched_dep_utc\": \"2026-01-05 01:05:00+00:00\", \"sched_arr_utc\": \"2026-01-05 03:55:00+00:00\", \"sched_block_minutes\": 170, \"status\": \"arrived\", \"dep_delay_minutes\": 135, \"arr_delay_minutes\": 116}, {\"step\": 11, \"from_flight_id\": \"2026-01-04|WN|1448|DEN|CLE|1805\", \"to_flight_id\": \"2026-01-05|WN|541|CLE|BNA|0600\", \"ground_minutes\": 425, \"origin\": \"CLE\", \"destination\": \"BNA\", \"sched_dep_utc\": \"2026-01-05 11:00:00+00:00\", \"sched_arr_utc\": \"2026-01-05 12:50:00+00:00\", \"sched_block_minutes\": 110, \"status\": \"arrived\", \"dep_delay_minutes\": -3, \"arr_delay_minutes\": -33}, {\"step\": 12, \"from_flight_id\": \"2026-01-05|WN|541|CLE|BNA|0600\", \"to_flight_id\": \"2026-01-05|WN|1300|BNA|RSW|0740\", \"ground_minutes\": 50, \"origin\": \"BNA\", \"destination\": \"RSW\", \"sched_dep_utc\": \"2026-01-05 13:40:00+00:00\", \"sched_arr_utc\": \"2026-01-05 15:50:00+00:00\", \"sched_block_minutes\": 130, \"status\": \"diverted\", \"dep_delay_minutes\": -10, \"arr_delay_minutes\": null}, {\"step\": 13, \"from_flight_id\": \"2026-01-05|WN|1300|BNA|RSW|0740\", \"to_flight_id\": \"2026-01-05|WN|3278|RSW|STL|1135\", \"ground_minutes\": 45, \"origin\": \"RSW\", \"destination\": \"STL\", \"sched_dep_utc\": \"2026-01-05 16:35:00+00:00\", \"sched_arr_utc\": \"2026-01-05 19:20:00+00:00\", \"sched_block_minutes\": 165, \"status\": \"arrived\", \"dep_delay_minutes\": 164, \"arr_delay_minutes\": 191}, {\"step\": 14, \"from_flight_id\": \"2026-01-05|WN|3278|RSW|STL|1135\", \"to_flight_id\": \"2026-01-05|WN|1260|STL|TPA|1545\", \"ground_minutes\": 145, \"origin\": \"STL\", \"destination\": \"TPA\", \"sched_dep_utc\": \"2026-01-05 21:45:00+00:00\", \"sched_arr_utc\": \"2026-01-06 00:00:00+00:00\", \"sched_block_minutes\": 135, \"status\": \"arrived\", \"dep_delay_minutes\": 105, \"arr_delay_minutes\": 96}, {\"step\": 15, \"from_flight_id\": \"2026-01-05|WN|1260|STL|TPA|1545\", \"to_flight_id\": \"2026-01-05|WN|986|TPA|STL|1950\", \"ground_minutes\": 50, \"origin\": \"TPA\", \"destination\": \"STL\", \"sched_dep_utc\": \"2026-01-06 00:50:00+00:00\", \"sched_arr_utc\": \"2026-01-06 03:20:00+00:00\", \"sched_block_minutes\": 150, \"status\": \"arrived\", \"dep_delay_minutes\": 90, \"arr_delay_minutes\": 98}, {\"step\": 16, \"from_flight_id\": \"2026-01-05|WN|986|TPA|STL|1950\", \"to_flight_id\": \"2026-01-05|WN|705|STL|MKE|2215\", \"ground_minutes\": 55, \"origin\": \"STL\", \"destination\": \"MKE\", \"sched_dep_utc\": \"2026-01-06 04:15:00+00:00\", \"sched_arr_utc\": \"2026-01-06 05:30:00+00:00\", \"sched_block_minutes\": 75, \"status\": \"arrived\", \"dep_delay_minutes\": 89, \"arr_delay_minutes\": 83}, {\"step\": 17, \"from_flight_id\": \"2026-01-05|WN|705|STL|MKE|2215\", \"to_flight_id\": \"2026-01-06|WN|4249|MKE|LAS|0605\", \"ground_minutes\": 395, \"origin\": \"MKE\", \"destination\": \"LAS\", \"sched_dep_utc\": \"2026-01-06 12:05:00+00:00\", \"sched_arr_utc\": \"2026-01-06 16:15:00+00:00\", \"sched_block_minutes\": 250, \"status\": \"arrived\", \"dep_delay_minutes\": -2, \"arr_delay_minutes\": -11}, {\"step\": 18, \"from_flight_id\": \"2026-01-06|WN|4249|MKE|LAS|0605\", \"to_flight_id\": \"2026-01-06|WN|1184|LAS|SAT|0855\", \"ground_minutes\": 40, \"origin\": \"LAS\", \"destination\": \"SAT\", \"sched_dep_utc\": \"2026-01-06 16:55:00+00:00\", \"sched_arr_utc\": \"2026-01-06 19:25:00+00:00\", \"sched_block_minutes\": 150, \"status\": \"arrived\", \"dep_delay_minutes\": -4, \"arr_delay_minutes\": -15}, {\"step\": 19, \"from_flight_id\": \"2026-01-06|WN|1184|LAS|SAT|0855\", \"to_flight_id\": \"2026-01-06|WN|3464|SAT|MDW|1410\", \"ground_minutes\": 45, \"origin\": \"SAT\", \"destination\": \"MDW\", \"sched_dep_utc\": \"2026-01-06 20:10:00+00:00\", \"sched_arr_utc\": \"2026-01-06 22:45:00+00:00\", \"sched_block_minutes\": 155, \"status\": \"arrived\", \"dep_delay_minutes\": -9, \"arr_delay_minutes\": -21}, {\"step\": 20, \"from_flight_id\": \"2026-01-06|WN|3464|SAT|MDW|1410\", \"to_flight_id\": \"2026-01-07|WN|2960|MDW|STL|0610\", \"ground_minutes\": 805, \"origin\": \"MDW\", \"destination\": \"STL\", \"sched_dep_utc\": \"2026-01-07 12:10:00+00:00\", \"sched_arr_utc\": \"2026-01-07 13:35:00+00:00\", \"sched_block_minutes\": 85, \"status\": \"arrived\", \"dep_delay_minutes\": -8, \"arr_delay_minutes\": -37}, {\"step\": 21, \"from_flight_id\": \"2026-01-07|WN|2960|MDW|STL|0610\", \"to_flight_id\": \"2026-01-07|WN|3832|STL|TPA|0825\", \"ground_minutes\": 50, \"origin\": \"STL\", \"destination\": \"TPA\", \"sched_dep_utc\": \"2026-01-07 14:25:00+00:00\", \"sched_arr_utc\": \"2026-01-07 16:45:00+00:00\", \"sched_block_minutes\": 140, \"status\": \"arrived\", \"dep_delay_minutes\": -7, \"arr_delay_minutes\": -23}, {\"step\": 22, \"from_flight_id\": \"2026-01-07|WN|3832|STL|TPA|0825\", \"to_flight_id\": \"2026-01-07|WN|3885|TPA|ORD|1240\", \"ground_minutes\": 55, \"origin\": \"TPA\", \"destination\": \"ORD\", \"sched_dep_utc\": \"2026-01-07 17:40:00+00:00\", \"sched_arr_utc\": \"2026-01-07 20:45:00+00:00\", \"sched_block_minutes\": 185, \"status\": \"arrived\", \"dep_delay_minutes\": -3, \"arr_delay_minutes\": -14}, {\"step\": 23, \"from_flight_id\": \"2026-01-07|WN|3885|TPA|ORD|1240\", \"to_flight_id\": \"2026-01-07|WN|3053|ORD|MCO|1545\", \"ground_minutes\": 60, \"origin\": \"ORD\", \"destination\": \"MCO\", \"sched_dep_utc\": \"2026-01-07 21:45:00+00:00\", \"sched_arr_utc\": \"2026-01-08 00:30:00+00:00\", \"sched_block_minutes\": 165, \"status\": \"arrived\", \"dep_delay_minutes\": 1, \"arr_delay_minutes\": -16}, {\"step\": 24, \"from_flight_id\": \"2026-01-07|WN|3053|ORD|MCO|1545\", \"to_flight_id\": \"2026-01-07|WN|1425|MCO|MHT|2010\", \"ground_minutes\": 40, \"origin\": \"MCO\", \"destination\": \"MHT\", \"sched_dep_utc\": \"2026-01-08 01:10:00+00:00\", \"sched_arr_utc\": \"2026-01-08 04:05:00+00:00\", \"sched_block_minutes\": 175, \"status\": \"arrived\", \"dep_delay_minutes\": -1, \"arr_delay_minutes\": -7}], \"row_count\": 24}",
+      "is_error": false
+    },
+    {
+      "name": "run_sql",
+      "arguments": {
+        "sql": "WITH t AS (\n  SELECT f.destination AS station, n.ground_minutes\n  FROM next_leg n JOIN flights f ON f.flight_id = n.from_flight_id\n  WHERE n.ground_minutes BETWEEN 15 AND 480\n)\nSELECT station, count(*) AS turns,\n       quantile_cont(ground_minutes, 0.05) AS p05\nFROM t WHERE station IN ('SFO','PHX','LGB','LAS','DAL','HOU','STL','FLL','BWI','DEN','CLE')\nGROUP BY station ORDER BY station"
+      },
+      "result": "{\"columns\": [\"station\", \"turns\", \"p05\"], \"rows\": [{\"station\": \"BWI\", \"turns\": 1147, \"p05\": 35.0}, {\"station\": \"CLE\", \"turns\": 77, \"p05\": 35.0}, {\"station\": \"DAL\", \"turns\": 1156, \"p05\": 35.0}, {\"station\": \"DEN\", \"turns\": 1506, \"p05\": 40.0}, {\"station\": \"FLL\", \"turns\": 221, \"p05\": 35.0}, {\"station\": \"HOU\", \"turns\": 794, \"p05\": 35.0}, {\"station\": \"LAS\", \"turns\": 1421, \"p05\": 35.0}, {\"station\": \"LGB\", \"turns\": 203, \"p05\": 35.0}, {\"station\": \"PHX\", \"turns\": 1116, \"p05\": 35.0}, {\"station\": \"SFO\", \"turns\": 139, \"p05\": 35.0}, {\"station\": \"STL\", \"turns\": 680, \"p05\": 35.0}], \"row_count\": 11}",
+      "is_error": false
+    },
+    {
+      "name": "run_sql",
+      "arguments": {
+        "sql": "WITH t AS (\n  SELECT n.ground_minutes FROM next_leg n WHERE n.ground_minutes BETWEEN 15 AND 480\n)\nSELECT count(*) AS turns, quantile_cont(ground_minutes,0.05) AS carrier_p05 FROM t"
+      },
+      "result": "{\"columns\": [\"turns\", \"carrier_p05\"], \"rows\": [{\"turns\": 22318, \"carrier_p05\": 35.0}], \"row_count\": 1}",
+      "is_error": false
+    },
+    {
+      "name": "run_sql",
+      "arguments": {
+        "sql": "SELECT flight_id, dep_delay_minutes, arr_delay_minutes, delay_carrier, delay_weather, delay_nas, delay_security, delay_late_aircraft\nFROM flights WHERE flight_id IN (\n'2026-01-03|WN|4106|SFO|PHX|1055','2026-01-03|WN|172|PHX|LGB|1440','2026-01-03|WN|65|LGB|LAS|1545',\n'2026-01-03|WN|65|LAS|DAL|1735','2026-01-03|WN|65|DAL|HOU|2255','2026-01-04|WN|2999|HOU|STL|0500')"
+      },
+      "result": "{\"columns\": [\"flight_id\", \"dep_delay_minutes\", \"arr_delay_minutes\", \"delay_carrier\", \"delay_weather\", \"delay_nas\", \"delay_security\", \"delay_late_aircraft\"], \"rows\": [{\"flight_id\": \"2026-01-03|WN|65|DAL|HOU|2255\", \"dep_delay_minutes\": 155, \"arr_delay_minutes\": 139, \"delay_carrier\": 25, \"delay_weather\": 0, \"delay_nas\": 0, \"delay_security\": 0, \"delay_late_aircraft\": 114}, {\"flight_id\": \"2026-01-03|WN|65|LAS|DAL|1735\", \"dep_delay_minutes\": 144, \"arr_delay_minutes\": 126, \"delay_carrier\": 10, \"delay_weather\": 0, \"delay_nas\": 0, \"delay_security\": 0, \"delay_late_aircraft\": 116}, {\"flight_id\": \"2026-01-03|WN|65|LGB|LAS|1545\", \"dep_delay_minutes\": 140, \"arr_delay_minutes\": 133, \"delay_carrier\": 9, \"delay_weather\": 0, \"delay_nas\": 0, \"delay_security\": 0, \"delay_late_aircraft\": 124}, {\"flight_id\": \"2026-01-03|WN|172|PHX|LGB|1440\", \"dep_delay_minutes\": 135, \"arr_delay_minutes\": 128, \"delay_carrier\": 0, \"delay_weather\": 0, \"delay_nas\": 0, \"delay_security\": 0, \"delay_late_aircraft\": 128}, {\"flight_id\": \"2026-01-03|WN|4106|SFO|PHX|1055\", \"dep_delay_minutes\": 144, \"arr_delay_minutes\": 134, \"delay_carrier\": 1, \"delay_weather\": 0, \"delay_nas\": 0, \"delay_security\": 0, \"delay_late_aircraft\": 133}, {\"flight_id\": \"2026-01-04|WN|2999|HOU|STL|0500\", \"dep_delay_minutes\": 3, \"arr_delay_minutes\": -8, \"delay_carrier\": null, \"delay_weather\": null, \"delay_nas\": null, \"delay_security\": null, \"delay_late_aircraft\": null}], \"row_count\": 6}",
+      "is_error": false
+    }
+  ],
+  "answer": "The tail is **N8633A**, and the 142-minute departure delay propagates through **five more legs on 2026-01-03** before the overnight at HOU kills it. Minimum turn is 35 minutes at every station involved (SFO, PHX, LGB, LAS, DAL \u2014 each has \u2265139 observed turns, and the 5th-percentile ground time is 35 min at all of them; carrier-wide p05 is also 35).\n\nProjection, walking the rotation forward from a 18:17Z off / 20:27Z on at SFO:\n\n| Leg | Sched dep (UTC) | Projected dep | Dep delay | Turn buffer eaten |\n|---|---|---|---|---|\n| 2026-01-03\\|WN\\|4106\\|SFO\\|PHX\\|1055 | 18:55 | 21:02 | **+127** | 50 sched \u2212 35 min = 15 absorbed |\n| 2026-01-03\\|WN\\|172\\|PHX\\|LGB\\|1440 | 21:40 | 23:37 | **+117** | 45 \u2212 35 = 10 absorbed |\n| 2026-01-03\\|WN\\|65\\|LGB\\|LAS\\|1545 | 23:45 | 01:37 (1/4) | **+112** | 40 \u2212 35 = 5 absorbed |\n| 2026-01-03\\|WN\\|65\\|LAS\\|DAL\\|1735 | 01:35 (1/4) | 03:22 | **+107** | 40 \u2212 35 = 5 absorbed |\n| 2026-01-03\\|WN\\|65\\|DAL\\|HOU\\|2255 | 04:55 (1/4) | 06:37 | **+102** | 40 \u2212 35 = 5 absorbed |\n| 2026-01-04\\|WN\\|2999\\|HOU\\|STL\\|0500 | 11:00 (1/4) | 11:00 \u2014 on time | 0 | 295 min of ground, absorbs the remaining 102 |\n\nTotal pushed downstream: **565 minutes of departure delay across five legs**, ending at HOU. The day's turns only absorb 40 minutes in total (15 at SFO, 10 at PHX, 5 each at LGB, LAS, DAL) \u2014 the schedule is built at or barely above minimum turn from SFO onward, so essentially nothing recovers in-day. The real absorber is the 295-minute overnight sit at HOU, which swallows the remaining 102 minutes; WN2999 the next morning departs clean.\n\nWhat actually happened on this tail matches and slightly exceeds the projection: those same five legs went out +144, +135, +140, +144, +155, with the delay-cause file attributing 133, 128, 124, 116 and 114 minutes respectively to late_aircraft \u2014 i.e. the cascade is the dominant cause on every one of them, with only 1\u201325 minutes of fresh carrier delay added per leg. WN2999 HOU\u2013STL then departed +3 and arrived \u22128, confirming the break point. Note the original 141 minutes of arrival delay on WN3851 itself was attributed entirely to NAS, not to an inbound aircraft.",
+  "error": null,
+  "usage": {
+    "input_tokens": 23876,
+    "output_tokens": 3506,
+    "cost_usd": 0.207
+  }
+}
