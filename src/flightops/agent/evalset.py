@@ -1,7 +1,7 @@
 """Ten operational questions with hand-verified answers, and the graders that mark them.
 
 DESIGN.md section 11. Every expected value in this file was computed by querying the committed
-sample directly -- `data/sample/bts_wn_2026_01_w1.csv.gz`, WN, 2026-01-01 to 2026-01-07 -- and
+sample directly (`data/sample/bts_wn_2026_01_w1.csv.gz`, WN, 2026-01-01 to 2026-01-07) and
 the query that produced it is recorded in each question's `verified_by`. Nothing here was
 produced by a model, which is the only property that makes an n-out-of-10 mean anything.
 
@@ -10,7 +10,7 @@ one's homework with no ground truth of its own, and its disagreements would be u
 The checks here are boring on purpose: does the answer cite the object ids it must have visited,
 does it contain the right numbers, does it use the vocabulary the data actually supports, and
 does it avoid the specific wrong claims. A terse correct answer passes; a fluent one that never
-names an id fails. That is the intended bias -- the whole argument for the object layer is that
+names an id fails. That is the intended bias, because the whole argument for the object layer is
 answers become checkable, so an unfalsifiable answer is not a passing one.
 
 Two questions are here because they can embarrass the ontology agent, and they stay in whatever
@@ -25,7 +25,7 @@ not inventing a 737.
 
 One limitation is worth stating rather than discovering: a number check is satisfied by the
 value appearing anywhere in the answer, so it cannot tell 565 in the right sentence from 565 in
-the wrong one. What stops that from being a hole is the citation requirement alongside it -- an
+the wrong one. What stops that from being a hole is the citation requirement alongside it. An
 answer that names the right ids and contains the right figures is one a reader can check in
 about a minute, which is the standard this project is arguing for in the first place. The
 reference answers below are held to the same bar: `test_agents.py` grades each one with its own
@@ -140,7 +140,7 @@ class Question:
 
 # The cascade every question below is built around: WN3851 PHX-SFO on 2026-01-03, tail N8633A,
 # 142 minutes late off the gate with 141 of them attributed to NAS. It is used repeatedly on
-# purpose -- projection, traversal, recovery and absorption are different questions about one
+# purpose: projection, traversal, recovery and absorption are different questions about one
 # situation, and reusing it means a reader can hold the whole eval in their head.
 ROOT = "2026-01-03|WN|3851|PHX|SFO|0855"
 LAST_LEG = "2026-01-03|WN|65|DAL|HOU|2255"
@@ -154,7 +154,7 @@ QUESTIONS: tuple[Question, ...] = (
         ),
         reference=(
             "2026-01-03|WN|3851|PHX|SFO|0855 pushed back 142 minutes late and arrived 141 "
-            "minutes late. The whole of the attributed delay is NAS (national air system) -- "
+            "minutes late. The whole of the attributed delay is NAS (national air system): "
             "141 minutes, with nothing recorded against carrier, weather, security or late "
             "aircraft. The aircraft was N8633A."
         ),
@@ -225,7 +225,7 @@ QUESTIONS: tuple[Question, ...] = (
         reference=(
             "No. 2026-01-07|WN|1016|BWI|RSW|1430 has no next leg. Tail N247WN's next recorded "
             "RSW departure is WN120 RSW-MKE at 20:05 UTC, but WN1016 is not scheduled to "
-            "arrive at RSW until 22:20 UTC -- 135 minutes after that departure. The rotation "
+            "arrive at RSW until 22:20 UTC, 135 minutes after that departure. The rotation "
             "link is therefore not built, and the break is recorded as an impossible turn: "
             "the two legs cannot be the same aircraft as scheduled, so this is a "
             "tail-assignment artefact in the source data rather than a real connection."
@@ -280,7 +280,7 @@ QUESTIONS: tuple[Question, ...] = (
             "it blamed on?"
         ),
         reference=(
-            "2026-01-01|WN|4285|SDF|BWI|0540 -- WN4285 SDF-BWI, scheduled 05:40 -- departed "
+            "2026-01-01|WN|4285|SDF|BWI|0540, WN4285 SDF-BWI scheduled 05:40, departed "
             "692 minutes late. "
             "677 of those minutes are attributed to the carrier. The aircraft was N291WN and "
             "its next leg was WN1732 BWI-MCI the same evening."
@@ -308,7 +308,7 @@ QUESTIONS: tuple[Question, ...] = (
             "The inbound was 2026-01-03|WN|4124|PHX|SFO|1840, same tail N8747Q, which arrived 357 "
             "minutes late with 348 minutes attributed to NAS. The trace stops there: the "
             "rotation link into WN4124 does not exist, because the aircraft's preceding leg "
-            "WN2601 DEN-PHX is recorded as an impossible turn -- it is scheduled to arrive at "
+            "WN2601 DEN-PHX is recorded as an impossible turn: it is scheduled to arrive at "
             "PHX at 02:50 UTC, 70 minutes after WN4124 is scheduled to leave PHX. So the "
             "furthest verifiable root is an NAS delay at PHX on WN4124."
         ),
@@ -363,8 +363,8 @@ QUESTIONS: tuple[Question, ...] = (
             "minutes late instead of 142, how far down N8633A's day would that propagate?"
         ),
         reference=(
-            "Barely at all. One leg is touched -- 2026-01-03|WN|4106|SFO|PHX|1055, which goes 5 "
-            "minutes late -- and the scheduled ground time at PHX absorbs the rest. Nothing "
+            "Barely at all. One leg is touched, 2026-01-03|WN|4106|SFO|PHX|1055, which goes 5 "
+            "minutes late, and the scheduled ground time at PHX absorbs the rest. Nothing "
             "after that moves. A 10-minute delay propagates nothing at all."
         ),
         verified_by=(
@@ -390,7 +390,7 @@ QUESTIONS: tuple[Question, ...] = (
         ),
         reference=(
             "Neither is answerable from this data. BTS On-Time Performance records the tail "
-            "number -- N8633A -- but not the aircraft type; the type would have to come from "
+            "number, N8633A, but not the aircraft type; the type would have to come from "
             "the FAA registry, looked up by that tail. Passenger counts and rebookings are not "
             "in the dataset in any form; they would come from the airline's own reservation "
             "system. The delay itself is known: 142 minutes."

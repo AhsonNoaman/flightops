@@ -12,7 +12,7 @@ answer to a reader poking at the deployed app than a missing route. DESIGN.md se
 for exactly this so the public URL cannot accrue cost.
 
 Domain errors keep their text. A rejected action returns the precondition that failed --
-"N8528Q lands at PHX at 14:05 UTC and needs 38 min to turn" -- with a 409, not a bare 400. The
+"N8528Q lands at PHX at 14:05 UTC and needs 38 min to turn", with a 409 rather than a bare 400. The
 message was written for a human deciding what to try next, and dropping it at the HTTP boundary
 would throw away the most useful thing the domain layer produces.
 

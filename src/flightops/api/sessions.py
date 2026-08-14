@@ -1,6 +1,6 @@
 """Scenario sessions: per-caller sandboxes over one shared read-only database.
 
-DESIGN.md section 7 makes this possible -- the base DuckDB file is immutable, so a scenario is
+DESIGN.md section 7 makes this possible, because the base DuckDB file is immutable, so a scenario is
 just a pinned clock plus an overlay, and two callers can hold different hypotheticals over the
 same bytes without either seeing the other's.
 
@@ -60,7 +60,7 @@ class SessionStore:
         """Open a sandbox pinned to a moment in the replayed day.
 
         FastAPI runs sync route handlers in a threadpool, so this is called concurrently. The
-        operations that matter -- OrderedDict insert, pop, move_to_end -- are single bytecode
+        operations that matter (OrderedDict insert, pop, move_to_end) are single bytecode
         operations under the GIL, and the worst case for a lost update is one evicted session
         rather than a corrupted one. A lock here would serialise every request for a guarantee
         nothing needs.

@@ -11,7 +11,7 @@ import { QuestionPanel } from '@/components/QuestionPanel';
  *
  * The ordering is the operator's question order rather than the data model's. Section 2 of
  * DESIGN.md claims the missing thing is knowing which delay is worth acting on, so the ranked
- * list is the landing view and a single cascade is what you get by clicking one -- not the other
+ * list is the landing view and a single cascade is what you get by clicking one, not the other
  * way round, which would make this a flight search box with a chart attached.
  *
  * The selected day and cascade live in the query string. A tool whose findings cannot be sent to
@@ -26,8 +26,8 @@ export default function Page() {
   const [events, setEvents] = useState<DisruptionEvent[] | null>(null);
   const [selected, setSelected] = useState<DisruptionEvent | null>(null);
 
-  // What the incoming URL asked for. Read once on mount -- `window` does not exist while the
-  // static export is being prerendered -- and consumed at most once, so that a later click is
+  // What the incoming URL asked for. Read once on mount, because `window` does not exist while
+  // the static export is being prerendered, and consumed at most once, so that a later click is
   // never overridden by the link the visitor happened to arrive on.
   const requested = useRef<{ date: string | null; root: string | null }>({ date: null, root: null });
   const consumedRoot = useRef(false);
@@ -38,7 +38,7 @@ export default function Page() {
 
     // Free container hosting sleeps when idle, so the first visitor after a quiet spell waits
     // out a cold start. Retrying quietly for a minute is the difference between "this project
-    // is dead" and "this took a moment" -- and a portfolio link is mostly read cold.
+    // is dead" and "this took a moment", and a portfolio link is mostly read cold.
     let cancelled = false;
     let attempt = 0;
 
@@ -50,7 +50,7 @@ export default function Page() {
           setHealth(body);
           setWaking(false);
           setFailure(null);
-          // A day from the URL wins, but only if the deployment actually holds it -- a stale
+          // A day from the URL wins, but only if the deployment actually holds it. A stale
           // link should land on a working screen rather than an empty one. Otherwise the worst
           // day in the committed sample, chosen from the data rather than hardcoded, because
           // landing on a quiet day would make a working deployment look broken.

@@ -60,7 +60,7 @@ def rank_disruptions(
     if not candidates:
         return []
 
-    # An empty scenario over the base data. The clock is unused here -- projection reads the
+    # An empty scenario over the base data. The clock is unused here, because projection reads the
     # overlay but never checks whether a leg is still pending, which is an action precondition.
     scenario = Scenario(store=store, clock=candidates[0].sched_dep_utc)
 

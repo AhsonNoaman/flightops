@@ -145,8 +145,8 @@ export interface AskResponse {
 /**
  * A failed request carrying the API's own message.
  *
- * The domain layer writes rejections for a human to act on -- "N8528Q lands at PHX at 14:05 UTC
- * and needs 38 min to turn" -- and the whole point of surfacing them is lost if the UI replaces
+ * The domain layer writes rejections for a human to act on, like "N8528Q lands at PHX at 14:05
+ * UTC and needs 38 min to turn", and the whole point of surfacing them is lost if the UI replaces
  * that with "Request failed". The status is kept so 503 (feature switched off) can be rendered
  * differently from 409 (the world said no).
  */

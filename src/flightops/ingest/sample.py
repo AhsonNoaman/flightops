@@ -3,8 +3,8 @@
     python -m flightops.ingest.sample [destination.duckdb] [source.csv.gz]
 
 The full month is downloaded and gitignored; the sample is a committed CSV. Everything that runs
-without network access -- the test suite, the eval, and the container image, which bakes the
-database in read-only at build time -- needs the same one-line way to turn that CSV into a
+without network access, meaning the test suite, the eval, and the container image that bakes
+the database in read-only at build time, needs the same one-line way to turn that CSV into a
 DuckDB file. Having one avoids the usual failure where the image and the tests are built by two
 slightly different code paths and diverge on a Friday.
 """

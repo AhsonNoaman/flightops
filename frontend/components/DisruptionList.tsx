@@ -29,7 +29,7 @@ function parts(flightId: string): { ident: string; route: string; time: string }
  * list sorted on a figure you have to hunt for reads as unsorted. The bar is the same figure as
  * length: thirteen rows of near-identical numerals do not communicate that the top one is three
  * times the fifth, and that ratio is the entire argument for triaging by cascade rather than by
- * delay. One colour for every bar -- shading them by size would encode the same fact twice.
+ * delay. One colour for every bar, since shading them by size would encode the same fact twice.
  */
 export function DisruptionList({
   events,

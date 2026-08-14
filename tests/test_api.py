@@ -1,7 +1,7 @@
 """API tests: the read surface is honest, the sandbox is real, and the gate holds.
 
 Two of these matter more than the rest. The scenario-isolation test is the load-bearing claim of
-DESIGN.md section 7 -- two callers holding contradictory hypotheticals over one read-only file --
+DESIGN.md section 7, two callers holding contradictory hypotheticals over one read-only file,
 and if it ever fails the deployed app is silently sharing state between strangers. The env-gate
 test is what keeps a public URL from spending money.
 

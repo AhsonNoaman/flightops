@@ -2,14 +2,14 @@
 
 DESIGN.md section 11. The baseline exists to answer the only question that makes the ontology
 work interesting: does the typed object layer buy anything a competent analyst with the schema
-and a SQL prompt would not get anyway? Building it well is the point -- a baseline tuned to
+and a SQL prompt would not get anyway? Building it well is the point, because a baseline tuned to
 lose proves nothing, so this one gets the derived rotation tables, the projection formula
 written out, and the same row cap and citation rules as the ontology agent.
 
 The one asymmetry is unavoidable and is stated rather than hidden: the ontology agent's
 simulate_action calls the same propagation engine the project ships, while the baseline has to
 implement the projection in SQL from the formula in its prompt. That gap is not an artefact of
-an unfair prompt, it is the thing being measured -- whether a shared, tested implementation of
+an unfair prompt, it is the thing being measured: whether a shared, tested implementation of
 the domain's hard arithmetic beats re-deriving it per question.
 """
 
@@ -31,7 +31,7 @@ SQL_TOOL_SCHEMA: dict[str, Any] = {
     "description": (
         "Execute one read-only SELECT against the flight database and return the rows. Must be "
         "a single statement beginning with SELECT or WITH. Returns at most 40 rows and tells "
-        "you when the result was truncated -- aggregate in SQL rather than counting a partial "
+        "you when the result was truncated. Aggregate in SQL rather than counting a partial "
         "list."
     ),
     "input_schema": {
@@ -47,7 +47,7 @@ SQL_TOOL_SCHEMA: dict[str, Any] = {
 def _validate(sql: str) -> str:
     """Reject anything that is not a single read-only SELECT.
 
-    The connection is opened read-only, so this is not the security boundary -- it is there so
+    The connection is opened read-only, so this is not the security boundary. It is there so
     a rejected query comes back as a sentence the model can act on instead of a DuckDB
     permission error it has to interpret.
     """

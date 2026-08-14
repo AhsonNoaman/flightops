@@ -28,22 +28,22 @@ docker run -p 8000:8000 flightops-api
 curl localhost:8000/api/health
 ```
 
-**Render (the default here)** — `render.yaml` is checked in; point a new Blueprint at the repo
+**Render (the default here).** `render.yaml` is checked in; point a new Blueprint at the repo
 from the dashboard and it reads the file. No CLI, no local credentials, no payment card. The
 deploy is driven entirely from the GitHub repo, which is the property that matters for something
 meant to outlive the laptop it was built on: the service definition is a committed file, not a
 form someone filled in once. The free tier sleeps after about fifteen minutes idle, so the first
-request after a quiet spell waits out a cold start of roughly a minute — the frontend retries and
+request after a quiet spell waits out a cold start of roughly a minute. The frontend retries and
 says so rather than showing a broken page.
 
-**Koyeb** — the alternative if that cold start is the thing you can't live with: an hour of idle
+**Koyeb.** The alternative if that cold start is the thing you can't live with: an hour of idle
 tolerance instead of fifteen minutes, and it wakes in one to five seconds instead of one minute.
 Also cardless in the normal case, though it will ask for a card to verify you are human if it
 cannot do so automatically. Build from the repo's `Dockerfile`, port 8000. The cost is that
-Koyeb has no repo manifest — the service is defined in their dashboard or CLI, so unlike
+Koyeb has no repo manifest. The service is defined in their dashboard or CLI, so unlike
 `render.yaml` it is one more thing that exists outside this repository.
 
-**Fly.io** — `fly.toml` is checked in and still works, but new accounts need a payment card, so
+**Fly.io.** `fly.toml` is checked in and still works, but new accounts need a payment card, so
 this is the paid move-to rather than a free option.
 
 ```bash
@@ -52,8 +52,8 @@ fly deploy
 fly open /api/health
 ```
 
-All three deploy the same image built from this repository, so moving between them — or onto a
-plain VPS — is one command and a changed URL in the frontend's environment.
+All three deploy the same image built from this repository, so moving between them, or onto a
+plain VPS, is one command and a changed URL in the frontend's environment.
 
 Live answering costs money and stays off until a key is set, which is a deliberate default
 rather than an omission: the frontend renders the ten committed eval transcripts instead, and
@@ -97,8 +97,8 @@ at, so this is designed to degrade rather than break:
 
 ## What is deliberately not deployed
 
-**The full month.** The container ships the committed sample — Southwest, 2026-01-01 to
-2026-01-07, 26,161 flights — not the full BTS month, which is gitignored and rebuilt on demand
+**The full month.** The container ships the committed sample of Southwest, 2026-01-01 to
+2026-01-07, 26,161 flights. Not the full BTS month, which is gitignored and rebuilt on demand
 with `scripts/fetch_data.py`. Anyone can reproduce the deployed data from the repo; nobody can
 reproduce a file that only existed on my machine.
 

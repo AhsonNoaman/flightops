@@ -7,8 +7,8 @@ Two choices worth stating, because neither is forced by the spec:
 
 Chains are built from the schedule, cancellations included. A cancelled leg still occupies a
 slot in the aircraft's planned line of flying, and it is what the controller sees on the board.
-Dropping cancelled legs here would manufacture station discontinuities -- the aircraft's next
-scheduled departure would appear to come from an airport it never reached -- and would bury a
+Dropping cancelled legs here would manufacture station discontinuities, since the aircraft's
+next scheduled departure would appear to come from an airport it never reached, and would bury a
 cancellation's downstream effect inside the link derivation, where the propagation engine and
 the cancel_flight action could no longer reason about it.
 

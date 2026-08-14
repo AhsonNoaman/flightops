@@ -2,8 +2,8 @@
 
     python scripts/compare_months.py data/flights_2026_01.duckdb data/flights_2025_07.duckdb
 
-`flightops.propagation.validate` measures one month at a time -- cascade shape and the
-LateAircraftDelay check -- and is the thing that must stay untouched between months if a
+`flightops.propagation.validate` measures one month at a time, cascade shape and the
+LateAircraftDelay check, and is the thing that must stay untouched between months if a
 replication is to mean anything. This script measures what `validate` deliberately does not: how
 different the two months are in the first place, and how many roots each one produces.
 
@@ -27,7 +27,7 @@ import duckdb
 # sync by hand is the cost of counting the whole population instead of the replayed sample: the
 # engine walks rotations in Python and cannot answer "how many are there" without replaying all of
 # them. `delay_carrier IS NOT NULL` is the SQL spelling of `flight.causes is not None`, not an
-# arrival-delay threshold restated -- tests/test_compare_months.py asserts the two filters select
+# arrival-delay threshold restated. tests/test_compare_months.py asserts the two filters select
 # the same flights on the committed sample rather than trusting that they read alike.
 MIN_ROOT_DELAY = 60
 CAUSE_SUM = "(delay_carrier + delay_weather + delay_nas + delay_security + delay_late_aircraft)"
@@ -108,7 +108,7 @@ def profile(database: Path) -> MonthProfile:
 
         # Actual minus scheduled block time. The projection adds *scheduled* block to a projected
         # departure, so a negative median here is the size of the systematic over-prediction that
-        # introduces -- and comparing it across months is what tests the block-time explanation
+        # introduces, and comparing it across months is what tests the block-time explanation
         # for the engine's positive bias rather than repeating it.
         slack = connection.execute(
             "SELECT median(date_diff('minute', actual_dep_utc, actual_arr_utc) "

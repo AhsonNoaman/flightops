@@ -4,7 +4,7 @@ DESIGN.md section 10 requires two independent checks, because a propagation mode
 tested against reality is just arithmetic:
 
 1. Replay real root delays and compare projected downstream delay against what actually happened.
-2. Compare projected propagated minutes against BTS's LateAircraftDelay on the same legs -- the
+2. Compare projected propagated minutes against BTS's LateAircraftDelay on the same legs, which
    dataset's own attribution of how much of a leg's delay came from its inbound aircraft.
 
 The second is the stronger test. LateAircraftDelay is produced by the carrier, independently of
@@ -95,7 +95,7 @@ def validate_against_bts(
     """Replay real root delays and score the projection against LateAircraftDelay.
 
     A root is a leg that departed late by at least `min_root_delay` and whose own delay was not
-    itself attributed to a late inbound aircraft -- otherwise the "root" is mid-cascade and its
+    itself attributed to a late inbound aircraft. Otherwise the "root" is mid-cascade and its
     downstream legs are being double counted.
     """
     engine = PropagationEngine(build_turn_model(store))
@@ -160,7 +160,7 @@ class ShapeResult:
     """How cascades are actually shaped, measured rather than assumed.
 
     DESIGN.md section 10 commits to measuring this before claiming it, because the brief's
-    motivating example -- forty minutes at one station becoming three hours by evening --
+    motivating example, forty minutes at one station becoming three hours by evening,
     conflates two different claims. Per-leg delay decaying down a rotation and summed downstream
     minutes exceeding the root delay are not the same statement, and the data supports them to
     very different degrees.
@@ -195,8 +195,8 @@ def measure_cascade_shape(
 ) -> ShapeResult:
     """Ratios of downstream minutes to root delay, over real roots.
 
-    Same root definition as the BTS comparison above -- a leg delayed by at least
-    `min_root_delay` whose own delay is not itself mostly inherited -- so the two tables are
+    Same root definition as the BTS comparison above, a leg delayed by at least
+    `min_root_delay` whose own delay is not itself mostly inherited, so the two tables are
     measured over the same population and can be read together.
     """
     engine = PropagationEngine(build_turn_model(store))

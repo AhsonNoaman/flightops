@@ -47,7 +47,7 @@ def store(database: Path) -> Iterator[ObjectStore]:
 def test_sql_root_filter_selects_exactly_what_the_python_one_does(
     database: Path, store: ObjectStore
 ) -> None:
-    """The same population, flight by flight -- not just the same count."""
+    """The same population, flight by flight, not just the same count."""
     # The filter as measure_cascade_shape applies it, copied deliberately rather than imported:
     # importing the loop would test that the loop equals itself. A limit far above the sample's
     # size so this is the whole population, which is what the README table counts.

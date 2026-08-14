@@ -1,7 +1,7 @@
 """Action tests: preconditions reject, diffs are honest, base data is never touched.
 
 The brief requires tests proving invalid actions are rejected. Rejection is tested by asserting
-the specific precondition that failed, not merely that something raised -- an action that
+the specific precondition that failed, not merely that something raised. An action that
 rejected for the wrong reason would pass the weaker test and mislead an operator.
 """
 
@@ -280,7 +280,7 @@ def test_recovery_clears_exactly_what_the_delay_caused(
     The first version of cancel and swap re-projected using the delay measured off the overlay,
     but the overlay already carries that shift in the leg's own times, so the cascade was
     computed against a root delayed twice. The swap then reported clearing 1,447 minutes of a
-    510-minute cascade -- an error that made the tool overstate the value of its own advice,
+    510-minute cascade, an error that made the tool overstate the value of its own advice,
     which is the worst direction for it to be wrong in.
 
     Asserted as a symmetry: what a delay creates, an equivalent recovery removes.

@@ -34,8 +34,8 @@ TURN_QUANTILE = 0.05
 
 The intent is the fastest turn a carrier actually achieves at a station, which is the binding
 constraint when an aircraft is running late. Measured for Southwest this lands at 35-40 minutes
-per station, consistent with published 737 minimum turn times -- a useful sign the estimator is
-measuring what it claims to.
+per station, consistent with published 737 minimum turn times. That is a useful sign the
+estimator is measuring what it claims to.
 """
 
 IMPLAUSIBLE_TURN_MINUTES = 15
@@ -43,7 +43,7 @@ IMPLAUSIBLE_TURN_MINUTES = 15
 
 1,943 links in January 2026 show a scheduled turn under 15 minutes, including some at zero. No
 narrowbody turns in that time; these are schedule artefacts. Including them pulls the fifth
-percentile from 33 to 31 minutes -- small, but it biases the estimator toward exactly the
+percentile from 33 to 31 minutes. Small, but it biases the estimator toward exactly the
 implausible end it is trying to measure.
 """
 

@@ -247,7 +247,7 @@ def test_validation_error_is_small_and_centred_for_this_carrier(store: ObjectSto
     over-predict. The data refused: on Southwest's week the mean error is roughly zero.
 
     Measured across the full month, the bias turns out to be strongly carrier-dependent --
-    SkyWest +74 minutes, United +28, Southwest +6, Frontier -7 -- because the error is really a
+    SkyWest +74 minutes, United +28, Southwest +6, Frontier -7, because the error is really a
     measure of how hard a carrier works to recover, and the engine projects a world where nobody
     does. Southwest's dense point-to-point rotations leave little room to swap, so its recorded
     outcomes sit close to the do-nothing projection. The assertion here is therefore about

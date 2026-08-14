@@ -7,7 +7,7 @@ Two properties are load-bearing and are what the eval is actually testing:
 
 Every tool result carries object ids. An answer that cites `2026-01-03|WN|3851|PHX|SFO|0855`
 can be checked against the store by anyone; an answer that says "the Phoenix flight" cannot.
-The ids are ugly on purpose -- they are the primary key, not a label.
+The ids are ugly on purpose: they are the primary key, not a label.
 
 Every rejection names the object and the precondition that failed. A tool that returns
 "error" teaches the model nothing; one that returns "N8633A lands at PHX at 14:05 UTC and
@@ -17,7 +17,7 @@ on the unhappy path, so it gets the same care as the happy path.
 
 Scenarios are keyed by a caller-supplied name so recovery actions compose: a delay and the
 swap that recovers it must land in the same overlay or the swap has no cascade to clear. The
-clock is pinned once, from the first action in that scenario, and never moves -- a scenario
+clock is pinned once, from the first action in that scenario, and never moves. A scenario
 whose "now" drifted between calls would silently change which flights are still actionable.
 """
 
@@ -141,7 +141,7 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
             "flight filters, or set it to 'aircraft', 'airport', or 'carrier' and pass "
             "object_id (a tail number, an IATA code, or a two-letter carrier code). Flight "
             "results are ordered by scheduled departure. Returns at most 40 rows and tells you "
-            "when the list was truncated -- narrow the filters rather than assuming you saw "
+            "when the list was truncated. Narrow the filters rather than assuming you saw "
             "everything."
         ),
         "input_schema": {

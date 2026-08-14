@@ -7,7 +7,7 @@ import { ApiError, AskResponse, EvalReport, api } from '@/lib/api';
  * Ask a question, or read the recorded eval.
  *
  * Live answering costs money per question and this URL is public, so it is off unless the
- * deployment has an API key. When it is off the panel does not hide -- it shows the ten eval
+ * deployment has an API key. When it is off the panel does not hide. It shows the ten eval
  * questions, their hand-verified answers, and whatever the scores actually are, which for now is
  * that there are none.
  *

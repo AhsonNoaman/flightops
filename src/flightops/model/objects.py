@@ -46,7 +46,7 @@ class CauseBuckets(BaseModel):
     """BTS's own attribution of an arrival delay across five causes.
 
     Populated only when arrival delay reaches 15 minutes, and then the five sum to the arrival
-    delay exactly -- measured with no exceptions across all 107,475 bucketed legs in January 2026
+    delay exactly, measured with no exceptions across all 107,475 bucketed legs in January 2026
     and, when the whole measurement was replicated on a second month, all 176,441 in July 2025.
     `late_aircraft` is the dataset's independent answer to the question the propagation engine
     computes, which is what makes it usable as validation at M4.
@@ -125,7 +125,7 @@ class Aircraft(BaseModel):
 
     Deliberately not the FAA registry object: BTS carries no aircraft type, and joining the
     registry would be a second operational data source. The consequence is that swap_aircraft
-    validates carrier, position, and timing but not fleet compatibility -- a named limitation
+    validates carrier, position, and timing but not fleet compatibility, which is a named limitation
     surfaced in TRAINING.md rather than papered over.
     """
 
@@ -197,7 +197,7 @@ class DisruptionEvent(BaseModel):
     """A root delay and everything it drags down: the addressable unit of a cascade.
 
     An object rather than a report because the operator needs to point at "this morning's ORD
-    cascade" -- questions reference it, actions target it. Always recomputed from flights and
+    cascade": questions reference it, actions target it. Always recomputed from flights and
     chains, never hand-edited: a curated event would be synthetic data presented as real.
     """
 

@@ -5,7 +5,7 @@ rejects with the object id and the specific failed precondition, or returns a st
 No action ever writes to the base tables; changes land in the scenario overlay.
 
 The distinction that shapes this module is hard preconditions versus flagged consequences. A
-hard precondition is an impossibility -- you cannot cancel a flight that has already pushed
+hard precondition is an impossibility: you cannot cancel a flight that has already pushed
 back. A consequence is expensive but real: swapping a tail that leaves the replacement out of
 position is something carriers do, badly, on bad days. Blocking the second would be the tool
 substituting its judgement for the controller's. Surfacing it in the diff is the tool doing its

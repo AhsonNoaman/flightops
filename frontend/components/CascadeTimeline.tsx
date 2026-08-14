@@ -23,8 +23,8 @@ interface Lane {
  *
  * Each leg gets two lanes on a shared clock: the schedule on top, what the projection says
  * actually happens underneath. The horizontal distance between their left edges *is* the delay,
- * so the thing the whole project is about -- one aircraft's late morning walking through its
- * afternoon -- is visible as a staircase instead of something you reconstruct from a table.
+ * so the thing the whole project is about, one aircraft's late morning walking through its
+ * afternoon, is visible as a staircase instead of something you reconstruct from a table.
  *
  * The table underneath is not redundant with this. Every value here is also a number there,
  * which is what keeps the chart from being the only way to read the data.

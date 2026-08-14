@@ -13,7 +13,7 @@ passengers. More on that at the bottom, and it matters.
 
 ---
 
-## Task 1 — Find the delay that is actually costing you (2 minutes)
+## Task 1. Find the delay that is actually costing you (2 minutes)
 
 Pick a day at the top right. The left column fills with the day's disruptions.
 
@@ -26,20 +26,20 @@ Each row reads: the flight, the tail, what the delay was put down to, how late i
 how many minutes and legs it cost downline.
 
 > **Read the difference.** Take 3 January. The four latest departures that day went out 422,
-> 367, 362 and 324 minutes down — and not one of them is on the list. Three of them were late
+> 367, 362 and 324 minutes down, and not one of them is on the list. Three of them were late
 > because their own inbound aircraft was late, so they are somebody else's cascade, not a new
 > one. The fourth, the 422, has a rotation the record cannot follow past that leg, so the tool
 > says it does not know rather than guessing. Top of the list instead is a **142**-minute delay
-> that cost 565 minutes across five legs — two rows above a **343**-minute delay that cost 338
+> that cost 565 minutes across five legs, two rows above a **343**-minute delay that cost 338
 > across one. Sorted by lateness, you would have worked the wrong aeroplane.
 
-## Task 2 — See where it lands, and what gets absorbed (3 minutes)
+## Task 2. See where it lands, and what gets absorbed (3 minutes)
 
 Click a row. The middle panel is that aircraft's whole day, in order.
 
 - **Sched dep** is what the schedule says. **Projected** is when it actually gets away if nobody
   does anything.
-- **Delay** is how late that leg ends up. Watch it come down as the day goes on — 142, then 127,
+- **Delay** is how late that leg ends up. Watch it come down as the day goes on: 142, then 127,
   117, 112. Each turn gives a few minutes back because there is slack in the ground time.
 - **Absorbed** is how much the schedule ate at that station.
 - The line underneath says where the cascade stops and why: usually the aircraft overnights, or
@@ -50,7 +50,7 @@ bug. The source data has no ferry or positioning moves in it, so where the sched
 appearing at a station it never flew into, the tool says so rather than joining two legs that are
 not really connected.
 
-## Task 3 — Try the recovery (5 minutes)
+## Task 3. Try the recovery (5 minutes)
 
 Underneath the cascade, pick a tail from the dropdown and press **swap aircraft**.
 
@@ -58,7 +58,7 @@ The dropdown only offers tails that are on the ground at that station in time to
 departure, with a realistic turn. If nothing is offered, nothing is in position.
 
 You get a before-and-after for every leg, and a headline number: how many of those downline
-minutes come back. Try **cancel this leg** for comparison — it clears the same downline minutes
+minutes come back. Try **cancel this leg** for comparison. It clears the same downline minutes
 but leaves the aircraft in the wrong place, and the tool says so.
 
 **Read the notes under the diff. They are the important part.** Three of them show up on most
@@ -80,8 +80,8 @@ underlying record is never touched, and closing the tab throws your changes away
 ## What it will get wrong, and roughly how much
 
 **It over-predicts.** Checked against the day's own records, it is about five minutes on the
-high side for one carrier's week and about fourteen across a full month — always in the
-direction of predicting more delay than was actually attributed. Two reasons: crews routinely beat the scheduled block time, and the recorded day
+high side for one carrier's week, and between seven and fourteen across a full month depending
+on the month. It is always in the direction of predicting more delay than was attributed. Two reasons: crews routinely beat the scheduled block time, and the recorded day
 already includes whatever somebody did about the problem. A cascade the tool shows you that never
 happened is often a cascade a controller prevented. That is the tool doing its job, not failing
 at it.
@@ -104,10 +104,10 @@ the tool has no opinion about which.
 ## The question box
 
 If the box on the right is greyed out, live question-answering is switched off on this
-deployment — it costs money per question and the page is public. Underneath it are ten questions
+deployment, because it costs money per question and the page is public. Underneath it are ten questions
 that were asked and answered, with the correct answer worked out by hand beforehand, so you can
 see what the thing does and does not get right without anyone paying for it.
 
 When it is on, ask in plain language. Every answer names the specific flights it used, so you can
 go and check any number it gives you. If it cannot tell you something from this data, it is
-supposed to say so rather than guess — and one of the ten questions exists purely to test that.
+supposed to say so rather than guess, and one of the ten questions exists purely to test that.

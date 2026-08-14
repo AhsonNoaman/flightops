@@ -1,7 +1,7 @@
 # The same checks `make check` runs locally, so a green tick means the same thing here as there.
 #
 # The eval is deliberately not run: it needs an API key and costs money per question. What CI
-# does check is that the committed transcripts still replay -- that the tools would answer the
+# does check is that the committed transcripts still replay, meaning the tools would answer the
 # recorded calls the same way today, which is the regression that would quietly invalidate a
 # published score.
 name: check

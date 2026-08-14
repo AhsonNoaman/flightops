@@ -3,8 +3,8 @@
 DESIGN.md section 11 requires the SQL baseline get a "fair prompt". Fair is easy to claim and
 easy to fake, so the two prompts are built from one shared preamble and differ only where they
 have to: the description of the tools each agent actually has. Everything that could tilt the
-result -- the role, the data window, the citation rule, the instruction to say when something
-cannot be determined, the domain facts about UTC and flight ids -- is written once and used by
+result (the role, the data window, the citation rule, the instruction to say when something
+cannot be determined, the domain facts about UTC and flight ids) is written once and used by
 both. If the ontology agent wins, it should be because of its tools.
 
 The baseline is given the derived tables too, not just the raw ones. next_leg and
@@ -41,8 +41,8 @@ so all-zero causes means "not attributed", not "on time".
 departure. late_aircraft minutes are the dataset's own record of that happening.
 
 How to answer:
-- Cite the object ids you used -- flight ids, tail numbers, IATA codes -- so every number in \
-your answer can be checked against the data.
+- Cite the object ids you used: flight ids, tail numbers, IATA codes. Every number in your \
+answer has to be checkable against the data.
 - Give the actual numbers. "Several downstream flights were delayed" is not an answer; \
 "three legs, 127, 117, and 112 minutes" is.
 - Do not infer beyond the data. If something cannot be determined from what you can see, say \
@@ -64,7 +64,7 @@ Nothing is written to the data. Actions sharing a scenario_id stack, which is ho
 what a recovery buys: delay the flight, then cancel or swap in the same scenario.
 
 There is no SQL. Aggregates you cannot get from a filter, you build by fetching the objects \
-and counting them -- and if a result says it was truncated, narrow the filter rather than \
+and counting them. If a result says it was truncated, narrow the filter rather than \
 counting a partial list.
 
 simulate_action is the only way to project a cascade. The projection is \

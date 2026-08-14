@@ -1,4 +1,4 @@
-# Interview guide — M1 discovery
+# Interview guide: M1 discovery
 
 Three conversations, thirty minutes each. The purpose is to break DESIGN.md, not to confirm it.
 
@@ -36,20 +36,20 @@ loses their vocabulary, which is the part worth having.
 | # | Assumption (DESIGN.md) | What would falsify it | Ask |
 |---|---|---|---|
 | 1 | §2 The controller cannot see the cascade and traces it by hand, tail by tail | They already run a rotation view that projects downstream times automatically, and have for years | 1, 3 |
-| 2 | §2 Seeing the cascade earlier widens the option set | They see it fine; what binds is crew, spares, gates, or authority — not knowledge | 1, 3 |
+| 2 | §2 Seeing the cascade earlier widens the option set | They see it fine; what binds is crew, spares, gates, or authority, not knowledge | 1, 3 |
 | 3 | §2, §3 One controller owns the aircraft-routing recovery decision | The call is negotiated across desks, or made above them by a duty manager | 1, 3 |
 | 4 | §6 delay, swap, cancel are the operative levers | The first moves are a spare tail, a gate change, a crew swap, a ferry, or cancelling the out-and-back as a pair | 1 |
 | 5 | §3, §10 Downstream minutes is the decision currency | They rank by misconnecting passengers, completion factor, crew downline, or where the aircraft must overnight | 1, 3 |
 | 6 | §8 Crew legality is a limitation worth naming, not a blocker | Crew binds most recovery decisions, so an aircraft-only answer cannot be acted on | 1, 3 |
 | 7 | §10 min_turn is estimable from observed ground times | Turn time is contractual and stand-specific; controllers know the real number and would read the estimate as wrong | 2, 3 |
 | 8 | §9, §10 BTS cause codes are usable ground truth for cascade attribution | Coding is post-hoc, administrative, sometimes negotiated; nobody looks at it during the day | 1, 2 |
-| 9 | §5, §10 Delay propagates through the tail | It also propagates through gates, crew pairings, and passenger connections — paths the model cannot represent at all | 2, 3 |
+| 9 | §5, §10 Delay propagates through the tail | It also propagates through gates, crew pairings, and passenger connections, which are paths the model cannot represent at all | 2, 3 |
 | 10 | §10 Chains end at the overnight break | The overnight is the constraint: the aircraft must reach a maintenance base, and that dominates the last legs of the day | 1, 3 |
 
 Assumption 9 is the one that would force a structural change rather than a wording change. Listen
 for it in every call.
 
-## Conversation 1 — Airline IOC or operations controller
+## Conversation 1. Airline IOC or operations controller
 
 More questions than fit in thirty minutes. The marked ones are what the milestone depends on; the
 rest are there if the conversation goes wide.
@@ -58,7 +58,7 @@ rest are there if the conversation goes wide.
    forward. (Let it run. Do not steer.)
 2. What told you? A screen, an alert, a phone call, someone walking over?
 3. **(core, 1)** When a tail is running late, how do you work out what else it hits tonight? Talk
-   me through it click by click. — *If a system already projects it: what does the projection not
+   me through it click by click. *If a system already projects it: what does the projection not
    tell you, do you trust it, and when is it wrong?*
 4. What is actually on your screens at 0800? What are the products called?
 5. **(core, 2)** On that day, was the hard part seeing what would happen, or deciding what to do
@@ -81,14 +81,14 @@ rest are there if the conversation goes wide.
     never done. Where is it wrong? Where does it read like someone who has read about this rather
     than done it?"
 
-## Conversation 2 — Airport operations manager
+## Conversation 2. Airport operations manager
 
 DESIGN.md models Airport as a code, a city, and a timezone. If the airport turns out to be an
 actor with its own constraints rather than a location, that is a finding about the object model.
 
 1. Walk me through the last morning your operation went sideways.
 2. When an inbound runs late, what has to move on your side?
-3. **(core, 7)** Is there a real minimum turn time here, or does it depend? On what — stand,
+3. **(core, 7)** Is there a real minimum turn time here, or does it depend? On what: stand,
    carrier, aircraft size, time of day, who is handling?
 4. Where do turns actually break at this airport? Rank the causes.
 5. **(core, 9)** Does one late aircraft at a gate make other flights late? How does that happen?
@@ -99,7 +99,7 @@ actor with its own constraints rather than a location, that is a finding about t
 9. **(final five minutes)** Persona reveal, same wording, plus: "Does the airport appear anywhere
    in this description? Should it?"
 
-## Conversation 3 — Dispatcher or line pilot
+## Conversation 3. Dispatcher or line pilot
 
 Under Part 121 dispatch holds operational control jointly with the captain, which makes this the
 conversation that tests who actually decides. It is also the only one that can test section 10's
@@ -137,5 +137,5 @@ Paste these back for synthesis into `docs/DISCOVERY.md`.
 The brief requires the writeup to contain the moment the initial understanding turned out to be
 wrong. That moment cannot be manufactured. If all three conversations confirm section 2, the
 correct output is a DISCOVERY.md that says so and examines why the questions failed to put the
-assumption at risk — not an invented reversal to fill the section. A discovery writeup reporting
+assumption at risk, not an invented reversal to fill the section. A discovery writeup reporting
 a null result honestly survives an interview; a convenient one does not.

@@ -1,4 +1,4 @@
-# DESIGN.md — Flight disruption cascades: problem statement and object model
+# DESIGN.md: flight disruption cascades, problem statement and object model
 
 Produced at Milestone 0, before any code. This is the contract between milestones and
 tools: ingestion (M2), the domain model (M3), propagation (M4), actions (M5), and the
@@ -30,7 +30,7 @@ labeled as constructed.
 
 ## 2. The operator and the problem
 
-Operator: a constructed persona, to be grounded and revised during M1 discovery — an
+Operator: a constructed persona, to be grounded and revised during M1 discovery. An
 operations controller in the Integrated Operations Center of a mid-size US carrier,
 responsible for aircraft routing recovery on the day of operations.
 
@@ -39,7 +39,7 @@ The problem, stated the way the operator states it:
 The delay board shows me twenty late flights as twenty separate problems. It doesn't
 show me that six of them are the same airplane working down its line all day, and that
 all six trace back to one bad turn at O'Hare at eight in the morning. I do that tracing
-by hand — pull the tail, walk its day leg by leg, do the turn math — while the phones
+by hand, pulling the tail, walking its day leg by leg, doing the turn math, while the phones
 are ringing. By the time I can see the whole cascade, the cheap fixes are gone: the
 airplane is three legs out of position and my only options are the expensive ones. What
 I need is to look at any late flight and see what it drags down tonight if I do nothing,
@@ -66,7 +66,7 @@ origin, scheduled departure time (flight numbers can repeat same-day on a route)
 Properties: carrier code, flight number, origin, destination; scheduled and actual
 departure and arrival, each stored in both local time (as BTS reports, for display) and
 UTC (computed at ingest, for all ordering and arithmetic); departure and arrival delay
-minutes; tail number (nullable — often absent on cancellations); status enum
+minutes; tail number (nullable, often absent on cancellations); status enum
 (scheduled, departed, arrived, cancelled, diverted); cancellation code (A carrier,
 B weather, C NAS, D security); the five BTS cause buckets (carrier, weather, NAS,
 security, late_aircraft), nullable because BTS populates them only when arrival delay
@@ -78,13 +78,13 @@ gets delayed, swapped, or cancelled is the leg.
 The tail as BTS reports it, keyed by tail number, with operating carrier and its derived
 daily rotation (via links). Deliberately not the FAA registry object: BTS carries no
 aircraft type, and joining the registry would be a second data source. Consequence:
-swap_aircraft validates carrier, position, and timing, not fleet compatibility — a named
-limitation surfaced in TRAINING.md rather than papered over.
+swap_aircraft validates carrier, position, and timing, not fleet compatibility. That is a
+named limitation surfaced in TRAINING.md rather than papered over.
 
 ### Airport
 IATA code, city, IANA timezone. Timezone is the load-bearing property: BTS times are
 local, and rotation ordering across timezones is wrong without normalization to UTC.
-Source is a small committed reference table with provenance noted in-file — reference
+Source is a small committed reference table with provenance noted in-file: reference
 data, not a second operational source. Validation: UTC offsets are independently
 derivable from CRSElapsedTime versus local-time deltas per city pair; that derivation is
 an ingest-time cross-check, not the source, because it is fragile around DST and 2400.
@@ -118,9 +118,9 @@ destination equals the next leg's origin). Where continuity fails, no link is cr
 chain break is recorded with a reason (positioning or ferry move invisible to OTP data,
 tail reassignment, or data error). Chain breaks are counted and reported at M2 as
 findings, not noise.
-Rejected: computing rotation at query time — it re-derives the same chain on every
+Rejected: computing rotation at query time, which re-derives the same chain on every
 traversal and hides data-quality failures inside query logic instead of surfacing them
-once, countable, at ingest. Rejected: a Rotation object — a sixth object that adds
+once, countable, at ingest. Rejected: a Rotation object, a sixth object that adds
 identity without adding any decision the chain of links does not already support.
 
 ## 6. Actions (three)
@@ -135,11 +135,11 @@ blocking, because judging costs is the operator's job and surfacing them is the 
 Preconditions: flight exists; status is scheduled as of the scenario clock (not
 departed, cancelled, or diverted); additional_minutes > 0; reason nonempty.
 Diff: the flight's shifted times, plus the recomputed projection for every downstream
-leg on its tail's chain — before and after, per leg — and the updated DisruptionEvent.
+leg on its tail's chain, before and after per leg, and the updated DisruptionEvent.
 
 ### swap_aircraft(flight_id, replacement_tail)
-Semantics: exchange the two tails' remaining lines of flying from this flight onward — a
-line swap, which is what carriers actually do — rather than a single-leg borrow, which
+Semantics: exchange the two tails' remaining lines of flying from this flight onward. That
+is a line swap, which is what carriers actually do, rather than a single-leg borrow, which
 creates repositioning problems the model would then have to fake.
 Preconditions: flight not departed or cancelled as of the scenario clock; replacement
 tail exists and is operated by the same carrier; replacement is projected on the ground
@@ -151,7 +151,7 @@ saved or lost, and any new station discontinuities flagged explicitly.
 Preconditions: flight not departed; not already cancelled; reason nonempty.
 Diff: status change; downstream relief on the tail's chain (delays absorbed because the
 aircraft now sits); and a stranded-rotation flag when the cancelled leg was positioning
-the tail — the next leg now departs from a station the aircraft never reaches, which in
+the tail, so the next leg now departs from a station the aircraft never reaches, which in
 reality forces another cancellation or a ferry. Passenger reaccommodation is not
 modeled; named limitation.
 
@@ -160,11 +160,11 @@ modeled; named limitation.
 The base DuckDB file is immutable historical fact. A scenario is a pinned clock (a "now"
 inside a replayed day) plus an ordered list of applied action diffs; actions and
 projections read through the overlay. This is a mechanism like a transaction, not an
-entity in the operation — it does not appear in the ontology and does not count against
+entity in the operation, so it does not appear in the ontology and does not count against
 the five objects. It exists because: the brief forbids silent mutation; the deployed API
 ships DuckDB baked in read-only, which this turns from a contradiction into a feature
-(session sandboxes); and it gives the demo its shape — replay a real disrupted day and
-try the swap you wish you'd made.
+(session sandboxes); and it gives the demo its shape, which is to replay a real disrupted
+day and try the swap you wish you'd made.
 
 ## 8. Cross-cutting rejections
 
@@ -182,8 +182,8 @@ Expectations to verify with counts against the real file, not claims to assert:
 
 - Times are local hhmm with a 2400 quirk; overnight arrivals (arrival local earlier
   than departure local) must not produce negative blocks.
-- Tail numbers: null especially on cancellations (breaking chains — a policy, not a
-  bug); inconsistent leading-N formatting across carriers.
+- Tail numbers: null especially on cancellations (breaking chains, which is a policy and
+  not a bug); inconsistent leading-N formatting across carriers.
 - Cause buckets populated only when arrival delay >= 15; buckets need not sum to the
   total delay.
 - Reporting carrier is the operating entity; mainline and regional legs for one brand
@@ -208,7 +208,7 @@ cancellation.
 
 Validation, two ways: replay real root delays and compare projected versus actual
 downstream delays; and compare per-leg projected propagated minutes against BTS's own
-LateAircraftDelay attribution on those legs — the dataset's independent answer.
+LateAircraftDelay attribution on those legs, which is the dataset's independent answer.
 
 Known error sources, to be written up honestly at M4: schedule padding absorbs delay
 (actual blocks beat scheduled, so the model overpredicts); controller interventions are
@@ -237,7 +237,7 @@ a cut: the baseline goes first, the eval set stays.
 
 Full set: one recent winter month, all carriers (winter gives dense weather-driven
 cascades), fetched by script, loaded into a single DuckDB file. Committed offline
-sample: Southwest, one week of that month — single fleet type (the fleet-compatibility
+sample: Southwest, one week of that month. Single fleet type (the fleet-compatibility
 caveat is moot inside the sample), no regional operators (no marketing-operating
 ambiguity), high-frequency point-to-point rotations with tight turns (dense, legible
 cascades). Rejected as sample: a network carrier week, where regional handoffs make

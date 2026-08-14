@@ -1,14 +1,15 @@
 """Read-only object store over the ingested DuckDB file, with typed link traversal.
 
-The store is the only place that knows SQL. Everything above it -- propagation, actions, the
-question-answering tools -- moves through objects and named links, which is what makes the
+The store is the only place that knows SQL. Everything above it (propagation, actions, the
+question-answering tools) moves through objects and named links, which is what makes the
 constraint in DESIGN.md section 11 enforceable rather than aspirational: there is no SQL path to
 hand the model, because the model is never given this class.
 
 `previous_leg` is the inverse of `next_leg` rather than a new link in the ontology. Triage walks
-backwards -- an operator sees a late flight and needs its root, not its consequences -- and the
-inverse of a stored link is free to traverse. Adding it costs nothing and omitting it would push
-callers into writing their own SQL, which is the thing the store exists to prevent.
+backwards, because an operator sees a late flight and needs its root rather than its
+consequences, and the inverse of a stored link is free to traverse. Adding it costs nothing, and
+omitting it would push callers into writing their own SQL, which is the thing the store exists
+to prevent.
 """
 
 from __future__ import annotations
@@ -271,8 +272,8 @@ class ObjectStore:
     def coverage(self) -> tuple[str, str, list[str]]:
         """First date, last date, and the carriers present in the loaded data.
 
-        Exists so callers that describe the data -- the agent's prompt, the README, the API's
-        health response -- state what was actually ingested rather than what someone assumed
+        Exists so callers that describe the data (the agent's prompt, the README, the API's
+        health response) state what was actually ingested rather than what someone assumed
         was. A prompt that promises a month and gets a week produces confident wrong answers.
         """
         span = self._connection.execute(

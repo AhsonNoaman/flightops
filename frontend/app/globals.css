@@ -7,7 +7,7 @@
  *   Hue is reserved for data.   Chrome is greyscale; selection is a surface change and a rule,
  *                               never a colour. Nothing in the interface competes with a mark.
  *   Two data colours, opposed.  Orange means minutes added, blue means minutes removed. They are
- *                               a validated diverging pair -- see the palette note below.
+ *                               a validated diverging pair; see the palette note below.
  *   Numbers align.              Columns of figures are tabular monospace so digits stack; prose
  *                               and labels are sans, because a whole screen of monospace reads as
  *                               a terminal emulator rather than an instrument.
@@ -16,7 +16,7 @@
  * The palette was validated, not chosen by eye. The earlier version of this file used green for
  * "recovered" and red for "worse", which is the single most common accessibility failure in
  * dashboards: those two measure a colour difference of 4.1 under deuteranopia, where 8 is the
- * floor -- a red/green viewer cannot tell a recovery from a regression. Blue and orange measure
+ * floor, so a red/green viewer cannot tell a recovery from a regression. Blue and orange measure
  * 26.8 under the same simulation and 31.8 under normal vision, and they carry the right
  * connotation anyway: warm for a delay you have gained, cool for one you have given back.
  */
@@ -257,7 +257,7 @@ h2 {
   background: var(--surface-1);
 }
 
-/* Selection is a surface and a rule, not a hue -- hue belongs to the data. */
+/* Selection is a surface and a rule, not a hue. Hue belongs to the data. */
 .rank.on {
   background: var(--surface-2);
   border-left-color: var(--ink);

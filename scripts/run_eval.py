@@ -121,8 +121,8 @@ def write_docs() -> Path:
         "",
         "Every expected value below was computed against the committed sample "
         "(`data/sample/bts_wn_2026_01_w1.csv.gz`: Southwest, 2026-01-01 to 2026-01-07, 26,161 "
-        "flights). Grading is programmatic -- cited ids, numeric values, required and forbidden "
-        "phrasings -- not an LLM judge.",
+        "flights). Grading is programmatic rather than an LLM judge: cited ids, numeric "
+        "values, required and forbidden phrasings.",
         "",
         "Scores and transcripts: `python scripts/run_eval.py --replay`, and `data/transcripts/`.",
         "",

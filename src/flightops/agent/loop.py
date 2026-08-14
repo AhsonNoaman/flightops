@@ -12,7 +12,7 @@ verbatim, in order, in a format that can be replayed.
 Replay is not a JSON echo. A replayed run feeds the recorded assistant turns back in sequence
 but re-executes every tool call against the live store, then asserts the results match what was
 recorded. So the offline test fails if the propagation engine, the actions, or the store ever
-change what they would have told the model -- which is the regression worth catching. What it
+change what they would have told the model, which is the regression worth catching. What it
 deliberately does not test is the model, and the docstring on ReplayTransport says so.
 """
 
@@ -195,7 +195,7 @@ class ReplayTransport:
     """Serves recorded assistant turns in order, so a run needs no API key.
 
     What this does and does not prove is worth being exact about. Replaying does not test the
-    model -- the model's turns are fixed, so a replayed run cannot fail because the model got
+    model, because the model's turns are fixed, so a replayed run cannot fail because the model got
     worse. It tests that the tools still answer those calls the same way. Every tool the
     recording invoked is re-executed live against the store, and the caller compares the
     results; a change to propagation, actions, or the store that would have changed what the

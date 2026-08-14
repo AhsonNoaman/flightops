@@ -3,12 +3,12 @@
 What was chosen, what was rejected, and why. Maintained from M1 onward per `.local/BRIEF.md`.
 Every entry is written to be defended out loud.
 
-Seeded at M1 from DESIGN.md sections 8 and 14 — the cross-cutting rejections, and the pushback
-recorded against the brief at M0 — plus the variant choice those sections presuppose. Decisions
+Seeded at M1 from DESIGN.md sections 8 and 14 (the cross-cutting rejections, and the pushback
+recorded against the brief at M0) plus the variant choice those sections presuppose. Decisions
 made inside later milestones are appended as they land. Revisions get a new dated entry rather
 than an edit to the entry above.
 
-## D1 — Variant B: public data with grounded discovery
+## D1. Variant B: public data with grounded discovery
 
 **Decision.** Build on public BTS On-Time Performance data with a constructed persona, always
 labeled as constructed, grounded in at least three conversations with people adjacent to airline
@@ -23,12 +23,12 @@ record-keeping, and data that can appear in a public repo at least anonymized. B
 its own terms rather than as a fallback: the domain has a hard computable core (propagation
 through rotation) instead of dashboard analytics, and BTS carries an independent cascade
 attribution in LateAircraftDelay, so the propagation model can be checked against something other
-than itself. The obligation B creates — three real conversations, primary sources, a persona never
-presented as a customer — is what M1 discharges.
+than itself. M1 discharges the obligation B creates: three real conversations, primary sources,
+and a persona never presented as a customer.
 
 **Date.** 2026-08-05 (M0), from DESIGN.md §1.
 
-## D2 — Five objects, no sixth
+## D2. Five objects, no sixth
 
 **Decision.** Flight, Aircraft, Airport, Carrier, DisruptionEvent, and nothing else.
 
@@ -39,15 +39,15 @@ adding a decision the `next_leg` chain does not already support. FlightNumber is
 is what gets delayed, swapped, and cancelled. Crew and Passenger have no data in BTS at all, so
 modeling them means either a second source or invented rows. Crew legality is the first objection
 a real controller is expected to raise, and it is carried as a named limitation rather than a
-modeled object — a position M1 is explicitly testing rather than assuming.
+modeled object, which is a position M1 is explicitly testing rather than assuming.
 
 **Date.** 2026-08-05 (M0), from DESIGN.md §8, with the specifics in §4 and §5.
 
-## D3 — One operational data source, and a swap that cannot check fleet compatibility
+## D3. One operational data source, and a swap that cannot check fleet compatibility
 
 **Decision.** BTS On-Time Performance only, plus two committed static reference tables (airport
-timezones, carrier names). `swap_aircraft` validates carrier, position, and timing — not aircraft
-type.
+timezones, carrier names). `swap_aircraft` validates carrier, position, and timing, but not
+aircraft type.
 
 **Rejected.** Joining the FAA aircraft registry for fleet type; adding a weather feed.
 
@@ -60,7 +60,7 @@ are not operational sources: static, small, committed, provenance noted in-file.
 
 **Date.** 2026-08-05 (M0), from DESIGN.md §8, §14.4, §13.
 
-## D4 — Store every time in both local and UTC
+## D4. Store every time in both local and UTC
 
 **Decision.** Persist BTS local times as reported, and UTC computed at ingest. Order and compute
 in UTC; display local.
@@ -70,12 +70,12 @@ in UTC; display local.
 **Why.** Local only makes rotation ordering wrong across timezones, which breaks the single link
 the whole project rests on. UTC only discards what the operator says and sees, making every screen
 a translation. Storing both costs a column pair and one ingest-time conversion, and makes the
-airport timezone table load-bearing — which is why §4 puts an independent cross-check on it
+airport timezone table load-bearing, which is why §4 puts an independent cross-check on it
 (offsets derivable from CRSElapsedTime against local-time deltas) as a check rather than a source.
 
 **Date.** 2026-08-05 (M0), from DESIGN.md §8, §4.
 
-## D5 — Scenario overlay instead of mutation
+## D5. Scenario overlay instead of mutation
 
 **Decision.** The DuckDB file is immutable historical fact. A scenario is a pinned clock plus an
 ordered list of applied action diffs; actions and projections read through the overlay. The
@@ -84,8 +84,8 @@ scenario is a mechanism, not an object in the ontology.
 **Rejected.** Actions writing to base tables. A writable copy of the database per user. Deferring
 the question to M7.
 
-**Why.** The brief forbids silent mutation, and the deployment ships DuckDB baked in read-only —
-a direct contradiction if actions mutate. Resolving it at M0 instead of discovering it at deploy
+**Why.** The brief forbids silent mutation, and the deployment ships DuckDB baked in read-only, a
+direct contradiction if actions mutate. Resolving it at M0 instead of discovering it at deploy
 turns the constraint into a feature: per-session sandboxes, and a demo shaped as replaying a real
 disrupted day to try the swap that was not made. It does not count against the five-object limit
 because it is transaction-like plumbing with no referent in the operation; an operations
@@ -93,7 +93,7 @@ controller does not have scenarios, they have a day.
 
 **Date.** 2026-08-05 (M0), from DESIGN.md §7, §8, §14.2.
 
-## D6 — Milestone numbering follows the brief; discovery is not delegated
+## D6. Milestone numbering follows the brief; discovery is not delegated
 
 **Decision.** M1 is discovery, M2 ingestion, M3 domain model, per `.local/BRIEF.md`. The runbook
 was corrected to match.
@@ -102,20 +102,20 @@ was corrected to match.
 milestone.
 
 **Why.** The original numbering omits discovery because a model cannot do it, which is precisely
-why it needs its own milestone rather than none. Discovery gates the README's strongest section —
-the moment the initial understanding of the problem turned out to be wrong — and that section
+why it needs its own milestone rather than none. Discovery gates the README's strongest section,
+the moment the initial understanding of the problem turned out to be wrong, and that section
 cannot be written from the dataset. Leaving two numbering schemes in play would also make every
 later instruction ambiguous about which artifact it targets.
 
 **Date.** 2026-08-05 (M0), from DESIGN.md §14.1.
 
-## D7 — A fair eval baseline, or none
+## D7. A fair eval baseline, or none
 
 **Decision.** If the raw-SQL baseline ships, it uses the same model, a genuinely competitive
 prompt, and published transcripts for both arms. If that cannot be done honestly, the comparison
 is dropped and the ten-question eval set ships alone.
 
-**Rejected.** A weaker baseline — lesser model, thin prompt, unpublished transcripts — that makes
+**Rejected.** A weaker baseline (lesser model, thin prompt, unpublished transcripts) that makes
 the ontology look good.
 
 **Why.** The comparison is the most persuasive artifact in the repo only while it is not rigged,
@@ -127,23 +127,23 @@ terms now rather than while rushing.
 
 **Date.** 2026-08-05 (M0), from DESIGN.md §14.3, §11.
 
-## D8 — Measure the cascade shape before claiming it
+## D8. Measure the cascade shape before claiming it
 
 **Decision.** Define cascade size as summed downstream attributed minutes, and report the measured
 distribution, whether it shows amplification or damping.
 
-**Rejected.** Carrying the brief's motivating example — forty minutes at ORD becoming three hours
-at DEN — as a premise the build assumes.
+**Rejected.** Carrying the brief's motivating example, forty minutes at ORD becoming three hours
+at DEN, as a premise the build assumes.
 
 **Why.** Per-leg delay typically decays down a rotation as padding and slack absorb it, while the
 sum across legs can still exceed the root delay. Those are two different claims and the example
 conflates them. Asserting amplification and then finding damping would mean quietly rewriting the
-premise late; measuring first makes either outcome a result. Damping is still a case for the tool
-— it changes which legs are worth intervening on, and by how much.
+premise late; measuring first makes either outcome a result. Damping is still a case for the tool,
+because it changes which legs are worth intervening on, and by how much.
 
 **Date.** 2026-08-05 (M0), from DESIGN.md §14.5, §10.
 
-## D9 — Cached transcripts committed, live question-answering behind an env gate
+## D9. Cached transcripts committed, live question-answering behind an env gate
 
 **Decision.** Eval transcripts are cached and committed so pytest runs offline and deterministic.
 Live question-answering requires an API key in the environment and is off by default on the public
@@ -159,7 +159,7 @@ committing the diff, which stays visible in history.
 
 **Date.** 2026-08-05 (M0), from DESIGN.md §14.6, §11.
 
-## D10 — DisruptionEvent is derived, never authored
+## D10. DisruptionEvent is derived, never authored
 
 **Decision.** DisruptionEvents are recomputed from flights and chains by the propagation engine.
 There is no path to hand-create or edit one.
@@ -174,7 +174,7 @@ not legible enough to demo, that is a finding about the engine, not a gap to fil
 
 **Date.** 2026-08-05 (M0), from DESIGN.md §14.7, §4.
 
-## D11 — Reconstruct actual times from delay minutes, not from the hhmm fields
+## D11. Reconstruct actual times from delay minutes, not from the hhmm fields
 
 **Decision.** `actual = scheduled + delay`, computed in UTC. The reported DepTime and ArrTime
 strings are parsed only to establish whether a leg departed or arrived, and to count the 2400
@@ -192,7 +192,7 @@ the reported delay on every leg.
 
 **Date.** 2026-08-05 (M2), from DESIGN.md §9.
 
-## D12 — Compute scheduled arrival from CRSElapsedTime, making CRSArrTime a free check
+## D12. Compute scheduled arrival from CRSElapsedTime, making CRSArrTime a free check
 
 **Decision.** `sched_arr_utc = sched_dep_utc + CRSElapsedTime`. CRSArrTime is not used to build
 the model; it is compared against the computed local arrival on every row.
@@ -211,7 +211,7 @@ row from a bad zone. All three hand-filled zones (BIH, EAR, XWA) agree on 100% o
 
 **Date.** 2026-08-05 (M2), from DESIGN.md §4, §9.
 
-## D13 — Destination belongs in the flight key
+## D13. Destination belongs in the flight key
 
 **Decision.** A leg is keyed by date, carrier, flight number, origin, destination, and scheduled
 departure time.
@@ -227,7 +227,7 @@ assuming it.
 
 **Date.** 2026-08-05 (M2), from DESIGN.md §4.
 
-## D14 — Leave non-standard tail numbers exactly as reported
+## D14. Leave non-standard tail numbers exactly as reported
 
 **Decision.** Tail numbers are stored verbatim. No normalisation, no N-prefixing.
 
@@ -243,7 +243,7 @@ sharper than the design expected: tails are missing only on cancellations, never
 
 **Date.** 2026-08-05 (M2), from DESIGN.md §9.
 
-## D15 — Build chains from the schedule, cancellations included
+## D15. Build chains from the schedule, cancellations included
 
 **Decision.** A cancelled leg keeps its place in the tail's ordered line of flying and can be
 linked through.
@@ -259,7 +259,7 @@ about a leg that link derivation already deleted.
 
 **Date.** 2026-08-05 (M2), from DESIGN.md §5, §6.
 
-## D16 — impossible_turn, a third chain-break reason the design did not anticipate
+## D16. impossible_turn, a third chain-break reason the design did not anticipate
 
 **Decision.** Where a tail's next leg is scheduled to depart before the current leg is scheduled
 to land, no link is created and the pair is recorded as `impossible_turn`. 6,256 of 512,451
@@ -278,7 +278,7 @@ this is not a cancellation artefact.
 
 **Date.** 2026-08-05 (M2), from DESIGN.md §5.
 
-## D17 — LateAircraftDelay is an exact partition, so it can validate propagation
+## D17. LateAircraftDelay is an exact partition, so it can validate propagation
 
 **Decision.** M4 validates the propagation engine against BTS's own LateAircraftDelay attribution.
 
@@ -294,7 +294,7 @@ as the assumption, so it is pinned by a test rather than left as a note.
 
 **Date.** 2026-08-05 (M2), from DESIGN.md §9, §10.
 
-## D18 — Commit the sample in the original BTS schema, gzipped
+## D18. Commit the sample in the original BTS schema, gzipped
 
 **Decision.** The committed sample is Southwest's first week of January 2026 as raw BTS rows,
 all 110 columns, gzipped to 1.4 MB. The DuckDB file is rebuilt from it and is not committed.
@@ -311,7 +311,7 @@ scheduled block, a null tail on a cancellation, and all three chain-break reason
 
 **Date.** 2026-08-05 (M2), from DESIGN.md §12.
 
-## D19 — previous_leg is an inverse traversal, not a new link
+## D19. previous_leg is an inverse traversal, not a new link
 
 **Decision.** The store exposes `previous_leg` alongside `next_leg`, implemented as a lookup on
 the same stored table by `to_flight_id`.
@@ -326,7 +326,7 @@ object, no table, and no ambiguity: it is the same edge read from the other end.
 
 **Date.** 2026-08-05 (M3), from DESIGN.md §5, §11.
 
-## D20 — The overlay is an in-memory dict, not a DuckDB temp table
+## D20. The overlay is an in-memory dict, not a DuckDB temp table
 
 **Decision.** A `Scenario` holds a pinned clock and a `dict[flight_id, Flight]` of overridden
 legs. Reads check the dict, then fall through to the store.
@@ -343,7 +343,7 @@ thousands. The base file stays what DESIGN.md §7 says it is, historical fact.
 
 **Date.** 2026-08-05 (M3), from DESIGN.md §7.
 
-## D21 — Pending is decided by the scenario clock, not the recorded status
+## D21. Pending is decided by the scenario clock, not the recorded status
 
 **Decision.** `Scenario.is_pending` compares a leg's scheduled departure against the pinned
 clock. The BTS status field is used only to exclude legs already cancelled in the source data.
@@ -359,7 +359,7 @@ which the eval set at M6 depends on.
 
 **Date.** 2026-08-05 (M3), from DESIGN.md §6, §7.
 
-## D22 — The store refuses a turn estimate below 30 observations
+## D22. The store refuses a turn estimate below 30 observations
 
 **Decision.** `turn_percentile` returns None when a carrier-station pair has fewer than 30
 observed turns, leaving the fallback to the caller.
@@ -377,7 +377,7 @@ almost everyone.
 
 **Date.** 2026-08-05 (M3), from DESIGN.md §10.
 
-## D23 — Both propagation thresholds are measured, and only one touches the arithmetic
+## D23. Both propagation thresholds are measured, and only one touches the arithmetic
 
 **Decision.** min_turn is the 5th percentile of observed ground times per carrier and station,
 excluding turns under 15 minutes, requiring 30 observations before a station-level estimate is
@@ -402,7 +402,7 @@ it from 285 to 60 relabels terminations and leaves every projected minute identi
 
 **Date.** 2026-08-05 (M4), from DESIGN.md §10.
 
-## D24 — Validate against LateAircraftDelay, and report the error rather than tune it away
+## D24. Validate against LateAircraftDelay, and report the error rather than tune it away
 
 **Decision.** The engine is scored against BTS's own late-aircraft attribution on the same legs.
 The residual error is published, not minimised.
@@ -423,7 +423,7 @@ over-warning is visible and correctable; under-warning is neither.
 
 **Date.** 2026-08-05 (M4), from DESIGN.md §10.
 
-## D25 — The model's error is carrier-dependent, and that is a finding, not a defect
+## D25. The model's error is carrier-dependent, and that is a finding, not a defect
 
 **Decision.** Report per-carrier calibration rather than a single accuracy number. Tests assert
 calibration for the sample carrier, not a universal direction of error.
@@ -448,7 +448,7 @@ does not have.
 
 **Date.** 2026-08-05 (M4), from DESIGN.md §10.
 
-## D26 — Cascades damp per leg while the total exceeds the root
+## D26. Cascades damp per leg while the total exceeds the root
 
 **Decision.** Cascade size is reported as summed downstream attributed minutes, and the README
 will state that per-leg delay decays.
@@ -465,7 +465,7 @@ still the operator's problem, because it is five late flights instead of one.
 
 **Date.** 2026-08-05 (M4), from DESIGN.md §10.
 
-## D27 — Impossibilities reject; costly consequences are flagged in the diff
+## D27. Impossibilities reject; costly consequences are flagged in the diff
 
 **Decision.** Preconditions reject only what cannot happen: a flight already departed relative to
 the scenario clock, an already-cancelled leg, a replacement tail that does not exist, is another
@@ -483,7 +483,7 @@ anyway, and every swap carries the fleet-compatibility caveat it cannot check.
 
 **Date.** 2026-08-05 (M5), from DESIGN.md §6.
 
-## D28 — Recovery actions project zero additional delay, never the delay already applied
+## D28. Recovery actions project zero additional delay, never the delay already applied
 
 **Decision.** `cancel_flight` and `swap_aircraft` project the scenario's current cascade by
 passing zero additional delay. The delay already applied is read only to populate the diff.
@@ -504,7 +504,7 @@ live, which is the honest reason the invariant is worth having.
 
 **Date.** 2026-08-05 (M5), from DESIGN.md §6, §7.
 
-## D29 — The agent loop is hand-written, not the SDK's tool runner
+## D29. The agent loop is hand-written, not the SDK's tool runner
 
 **Decision.** `agent/loop.py` drives the request-execute-repeat cycle directly against the
 Messages API. Every assistant turn is stored as raw content blocks and every tool call with its
@@ -520,7 +520,7 @@ is about sixty lines, which is the right trade for owning the artefact.
 
 **Date.** 2026-08-06 (M6), from DESIGN.md §11.
 
-## D30 — Scenarios are keyed by a caller-supplied id, with the clock pinned once
+## D30. Scenarios are keyed by a caller-supplied id, with the clock pinned once
 
 **Decision.** `simulate_action` takes a `scenario_id` (default `"default"`). Actions sharing one
 land in the same overlay. The clock is set from the first target's scheduled departure minus one
@@ -537,7 +537,7 @@ composed swap clears 565 minutes and the isolated one clears zero.
 
 **Date.** 2026-08-06 (M6), from DESIGN.md §6, §11.
 
-## D31 — Tool results cap at 40 rows and always say when they truncated
+## D31. Tool results cap at 40 rows and always say when they truncated
 
 **Decision.** `find_objects` and the baseline's `run_sql` both return at most 40 rows and add a
 `truncated` message naming the problem when there were more.
@@ -551,7 +551,7 @@ applies to both agents so neither can win on result volume.
 
 **Date.** 2026-08-06 (M6), from DESIGN.md §11.
 
-## D32 — Tool arguments are validated in the dispatcher, not by `strict: true`
+## D32. Tool arguments are validated in the dispatcher, not by `strict: true`
 
 **Decision.** The three tool schemas are plain JSON Schema. Every argument is checked in Python,
 and a bad one comes back as a sentence naming the valid values.
@@ -566,7 +566,7 @@ would have meant guessing at a 400 nobody could reproduce. Revisit once there is
 
 **Date.** 2026-08-06 (M6), from DESIGN.md §11.
 
-## D33 — Grading is programmatic; there is no LLM judge
+## D33. Grading is programmatic; there is no LLM judge
 
 **Decision.** Each question carries object ids that must be cited, numeric values with
 tolerances, required phrasings, and forbidden claims. `Question.grade` is about twenty lines.
@@ -583,7 +583,7 @@ failure rather than a surprise during a paid run.
 
 **Date.** 2026-08-06 (M6), from DESIGN.md §11.
 
-## D34 — The baseline gets the derived rotation tables and the projection formula
+## D34. The baseline gets the derived rotation tables and the projection formula
 
 **Decision.** The SQL baseline's prompt includes `next_leg`, `chain_breaks` and
 `rotation_sequence`, the propagation recurrence written out, and the exact turn-time percentile
@@ -601,7 +601,7 @@ hypothesis under test.
 
 **Date.** 2026-08-06 (M6), from DESIGN.md §11.
 
-## D35 — Two questions the object layer can lose stay in the set
+## D35. Two questions the object layer can lose stay in the set
 
 **Decision.** `cancellations-by-reason` asks for a count of 106 objects through a tool that
 returns 40. `unanswerable-aircraft-type` has no answer in the data at all.
@@ -619,7 +619,7 @@ make impossible.
 
 **Date.** 2026-08-06 (M6), from DESIGN.md §11.
 
-## D36 — The eval runs against the committed sample, not the full month
+## D36. The eval runs against the committed sample, not the full month
 
 **Decision.** Every hand-verified answer and every transcript comes from
 `data/sample/bts_wn_2026_01_w1.csv.gz` -- Southwest, 2026-01-01 to 2026-01-07, 26,161 flights.
@@ -632,7 +632,7 @@ sample is produced by the same ingest code path, so the eval is not running on a
 
 **Date.** 2026-08-06 (M6), from DESIGN.md §11, §12.
 
-## D37 — The landing view ranks roots, not late flights
+## D37. The landing view ranks roots, not late flights
 
 **Decision.** `/api/disruptions` returns one event per aircraft, ranked by minutes forced onto
 downstream legs. A leg whose largest BTS cause bucket is `late_aircraft` is excluded as a
@@ -649,7 +649,7 @@ WN3851 PHX-SFO with 565 downstream minutes, which is the cascade the eval set is
 
 **Date.** 2026-08-06 (M7), from DESIGN.md §2, §4.
 
-## D38 — Scenario sessions are in-memory, bounded, and expiring
+## D38. Scenario sessions are in-memory, bounded, and expiring
 
 **Decision.** Scenarios live in a process-local `OrderedDict` with a 200-session cap, a 30-minute
 idle TTL, and a 25-action limit each. Nothing is persisted. The cap evicts the least recently
@@ -666,7 +666,7 @@ because "delay this by 5 minutes" is cheap to send in a loop.
 
 **Date.** 2026-08-06 (M7), from DESIGN.md §7.
 
-## D39 — A rejected action is 409 with the precondition text, not 400 with "invalid"
+## D39. A rejected action is 409 with the precondition text, not 400 with "invalid"
 
 **Decision.** `PreconditionFailed` becomes HTTP 409 and the response body is the precondition
 string verbatim. The frontend renders it as-is.
@@ -681,7 +681,7 @@ that said no.
 
 **Date.** 2026-08-06 (M7), from DESIGN.md §6.
 
-## D40 — The frontend is a static export; the API is a container with the data baked in
+## D40. The frontend is a static export; the API is a container with the data baked in
 
 **Decision.** Next.js with `output: 'export'`, deployed to Vercel as files on a CDN, reading
 everything from the API at runtime. The API is a Docker image that builds `sample.duckdb` from
@@ -703,7 +703,7 @@ container. It is now a declared dependency.
 
 **Date.** 2026-08-06 (M7), from BRIEF M7, DESIGN.md §7.
 
-## D41 — `vercel.json` declares the framework and nothing the framework already knows
+## D41. `vercel.json` declares the framework and nothing the framework already knows
 
 **Decision.** `frontend/vercel.json` sets `framework: "nextjs"` and the two security headers, and
 does not set `buildCommand` or `outputDirectory`.
@@ -728,7 +728,7 @@ redundant, it is a second source of truth that only speaks up when it disagrees.
 
 **Date.** 2026-08-07 (M7), from the first Vercel deploy.
 
-## D42 — Two data colours, chosen by a validator rather than by eye
+## D42. Two data colours, chosen by a validator rather than by eye
 
 **Decision.** The interface reserves hue for data and spends it on exactly two: orange for minutes
 added, blue for minutes given back. Everything else -- selection, hover, focus, panel chrome -- is
@@ -754,7 +754,7 @@ chart is a colour with two meanings.
 
 **Date.** 2026-08-07 (M7).
 
-## D43 — The cascade is drawn, and the table stays
+## D43. The cascade is drawn, and the table stays
 
 **Decision.** The centre pane leads with a rotation timeline: two lanes per leg on a shared clock,
 the schedule above and the projection below, so the horizontal offset between them is the delay.
@@ -779,7 +779,7 @@ shading them by size would encode the same fact twice and spend a channel on not
 
 **Date.** 2026-08-07 (M7).
 
-## D44 — The recovery figure is scoped in its own label
+## D44. The recovery figure is scoped in its own label
 
 **Decision.** The recovery panel reads "Cleared from this rotation: −565 min" and "Of this
 aircraft's cascade: 100%", and the action's warnings sit in a bordered block attached directly
@@ -801,7 +801,7 @@ impressive, the headline was measuring something other than what it claimed.
 
 **Date.** 2026-08-07 (M7).
 
-## D45 — The selected day and cascade live in the URL
+## D45. The selected day and cascade live in the URL
 
 **Decision.** `?date=…&root=…` is written with `replaceState` on every selection, read once on
 mount, and ignored if the deployment does not hold the day asked for.
@@ -820,7 +820,7 @@ a working screen.
 
 **Date.** 2026-08-07 (M7).
 
-## D46 — Revises D1: the persona is grounded in published sources, not interviews
+## D46. Revises D1: the persona is grounded in published sources, not interviews
 
 **Decision.** No interviews will be held. D1's obligation of "at least three conversations" is
 withdrawn rather than left standing as an intention. In its place the persona is grounded in
@@ -858,30 +858,30 @@ written, now describing work that is open rather than work that is scheduled.
 
 **Date.** 2026-08-07 (M1, closed as not-done).
 
-## D47 — The central findings are replicated on a second month, chosen to disagree
+## D47. The central findings are replicated on a second month, chosen to disagree
 
-**Decision.** Re-run the entire measurement — cascade shape and the `LateAircraftDelay` check —
-unchanged, on **July 2025** alongside the original **January 2026**, and report both in the README
-whatever they say. July was chosen before any of it was measured, on the grounds that it is peak
-summer: highest utilisation, convective disruption, thin recovery slack. The one code change
+**Decision.** Re-run the entire measurement, meaning cascade shape and the `LateAircraftDelay`
+check, unchanged, on **July 2025** alongside the original **January 2026**, and report both in the
+README whatever they say. July was chosen before any of it was measured, on the grounds that it is
+peak summer: highest utilisation, convective disruption, thin recovery slack. The one code change
 allowed was `--database` on `fetch_data.py`, because the output path was hardcoded and two months
 could not otherwise coexist.
 
 **Rejected.** Leaving a premise-contradicting finding resting on one month. Picking a second month
 after peeking at which one would agree. Reconciling the two if they diverged. Adding a second
-month to the deployed API — it doubles the image and the ranked list is a one-day view, so the
-replication is an offline claim about the engine, not a feature.
+month to the deployed API, which doubles the image while the ranked list stays a one-day view, so
+the replication is an offline claim about the engine rather than a feature.
 
 **Why.** The finding this project is proudest of is that its own motivating premise was mostly
 wrong. A finding like that gets checked, and a single month is the obvious place to attack it: the
 ingestion could have been fitted to January without anyone noticing, including me. Three outcomes
-were acceptable in advance and all three were publishable — it replicates, it diverges and
-seasonality is the finding, or the pipeline breaks and the ingest was overfitted.
+were acceptable in advance and all three were publishable. It replicates; or it diverges and
+seasonality is the finding; or the pipeline breaks and the ingest was overfitted.
 
-**What happened.** The pipeline did not break: July ingested with no code change, and every
+**What happened.** The pipeline did not break. July ingested with no code change, and every
 data-quality expectation held, including the falsified one that made the propagation check
-possible. The core result replicated to the digit — median first-leg carry **0.91×** in both
-months, median cascade length **1** in both. The amplification tail did *not*: 43% of January
+possible. The core result replicated to the digit: median first-leg carry **0.91×** in both
+months, median cascade length **1** in both. The amplification tail did not. 43% of January
 cascades exceed their root against 31% of July's, mean 1.35× against 1.06×. So the weaker reading
 is the one that survives two months, which is the direction the January correction was already
 pointing.
@@ -889,17 +889,17 @@ pointing.
 Two things came out that January alone could not have produced:
 
 - **The workload inverts the shape.** July damps harder per root and has 1,124 qualifying roots a
-  day against January's 673 — 57.1 per thousand flights against 40.4. The month with the less
+  day against January's 673, or 57.1 per thousand flights against 40.4. The month with the less
   dramatic cascade picture is the month with far more to triage. A tool designed around long
   cascades would have been designed for the wrong month; the ranking is the right primitive, and
   this is the second independent argument for it.
 - **A README explanation was falsified.** The positive bias against BTS was attributed to two
   causes: scheduled block times being padded, and the engine projecting a do-nothing world where a
   controller in fact acted. The bias halves in July (+14 to +7 median), but median
-  actual-minus-scheduled block time is −8 against −7 — effectively identical, so padding cannot
-  explain it. Cancellations, the most decisive intervention available, run 4.7% against 2.4%: the
-  intervention explanation survives, the block-time one does not. It is still association rather
-  than proof, and the README says so.
+  actual-minus-scheduled block time is −8 against −7, which is effectively identical, so padding
+  cannot explain it. Cancellations, the most decisive intervention available, run 4.7% against
+  2.4%: the intervention explanation survives, the block-time one does not. It is still
+  association rather than proof, and the README says so.
 
 The root-population figure required restating the Python root filter in SQL, which is a duplicated
 definition and therefore a future silent divergence. `tests/test_compare_months.py` asserts the two
@@ -941,9 +941,9 @@ rather than confirm them. What a real conversation could reverse:
 - **D2**, if crew legality binds most recovery decisions rather than constraining some. An
   aircraft-only answer the operator cannot act on is a worse outcome than a sixth object.
 - **D3**, if turn feasibility at the stand is what actually decides swaps in practice.
-- **D8**, if controllers measure recovery in something other than minutes — misconnects,
+- **D8**, if controllers measure recovery in something other than minutes: misconnects,
   completion factor, overnight maintenance positioning. The propagation output would be right and
   the ranking wrong.
 - **The problem statement itself**, if ops controllers already run automatic rotation projection
-  today. The gap would then be elsewhere — options, authority, or trust in the projection — and §2
-  needs rewriting before M4 builds toward it.
+  today. The gap would then be elsewhere, in options or authority or trust in the projection, and
+  §2 needs rewriting before M4 builds toward it.

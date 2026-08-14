@@ -16,7 +16,7 @@ import { CascadeTimeline } from '@/components/CascadeTimeline';
 const TERMINATION: Record<string, string> = {
   absorbed: 'the next turn had enough scheduled ground time to absorb what was left',
   overnight_break: 'the aircraft overnights here, so the cascade stops',
-  chain_break: 'the recorded rotation stops here — the next leg is not the same aircraft',
+  chain_break: 'the recorded rotation stops here; the next leg is not the same aircraft',
   end_of_window: 'the data window ends here, not the cascade',
   cancellation: 'the next leg was cancelled',
   guard_limit: 'the projection hit its length bound; this list is truncated',
@@ -42,7 +42,7 @@ const CAUSE: Record<string, string> = {
 export function CascadeView({ event }: { event: DisruptionEvent }) {
   // The chart and the table are driven by a snapshot, not by two independently-updating pieces of
   // state. Holding a previous rotation while a new event's numbers were already on screen would
-  // render one aircraft's legs against another aircraft's cascade -- briefly, but wrongly, which
+  // render one aircraft's legs against another aircraft's cascade: briefly, but wrongly, which
   // is worse than a moment of blank. The headline figures above come straight from the list
   // response and so update instantly; only the chart lags, and it dims while it does.
   const [view, setView] = useState<{ rotation: Flight[]; event: DisruptionEvent } | null>(null);
@@ -146,7 +146,7 @@ export function CascadeView({ event }: { event: DisruptionEvent }) {
       <div className="note">Cascade ends: {TERMINATION[shown.termination] ?? shown.termination}.</div>
 
       <details>
-        <summary>Table view — every value in the chart above, as numbers</summary>
+        <summary>Table view: every value in the chart above, as numbers</summary>
         <table>
           <thead>
             <tr>

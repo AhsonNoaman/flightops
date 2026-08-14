@@ -12,7 +12,7 @@ check that its own correct answer cannot pass is a broken check, and that is a b
 catching before it costs a live run.
 
 Transcript replay. Every committed transcript has its recorded tool calls re-executed against a
-freshly built store, and the results compared. This does not test the model -- the model's turns
+freshly built store, and the results compared. This does not test the model, whose turns
 are frozen. It tests that a change to propagation, actions, or the store has not changed what
 the model would have seen, which is the regression that would quietly invalidate a published
 score.
@@ -276,7 +276,7 @@ def test_both_prompts_share_the_preamble_verbatim(store: ObjectStore) -> None:
     """Fairness claimed in prose is worth nothing; this is the claim made testable."""
     ontology = prompts.ontology_system_prompt(store)
     sql = prompts.sql_system_prompt(store)
-    shared = prompts._shared(store)  # noqa: SLF001 -- asserting the private seam is the point
+    shared = prompts._shared(store)  # noqa: SLF001, asserting the private seam is the point
     assert ontology.startswith(shared)
     assert sql.startswith(shared)
     assert "cite the object ids" in shared.lower()
@@ -333,8 +333,8 @@ class ScriptedTransport:
     """A transport that returns pre-written turns, so the loop can be tested without the API.
 
     Not the same thing as ReplayTransport, which replays a real recording. This one exists to
-    drive the loop's own mechanics -- tool_use extraction, tool_result assembly, error flagging,
-    answer extraction -- which would otherwise only ever be exercised by a live run.
+    drive the loop's own mechanics (tool_use extraction, tool_result assembly, error flagging,
+    answer extraction) which would otherwise only ever be exercised by a live run.
     """
 
     def __init__(self, turns: list[loop.AssistantTurn]) -> None:

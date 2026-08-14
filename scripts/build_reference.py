@@ -2,7 +2,7 @@
 
 Reference data, not a second operational source: static, small, committed, and used only to
 give airports a timezone and carriers a name. DESIGN.md section 4 requires the timezone table
-to carry provenance in-file, because it is load-bearing -- BTS reports local times and rotation
+to carry provenance in-file, because it is load-bearing. BTS reports local times and rotation
 ordering across timezones is wrong without it.
 
 Run:  python scripts/build_reference.py data/raw/bts_2026_01.csv
